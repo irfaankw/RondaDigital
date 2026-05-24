@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Daftar — RondaDigital{% endblock %}
+
+{% block content %}
+<style>
+    body { background: linear-gradient(170deg, #020710 0%, #051329 100%); min-height: 100vh; }
+    .ambient { position:fixed; inset:0; background:radial-gradient(ellipse 70% 50% at 50% 40%, rgba(0,200,220,0.07) 0%, transparent 70%); pointer-events:none; }
+
+    .field-input {
+        width:100%; background:rgba(255,255,255,0.04);
+        border:1px solid rgba(148,163,184,0.15); border-radius:10px;
+        padding:11px 14px 11px 40px; color:#f1f5f9; font-size:14px;
+        outline:none; transition:border-color .2s, box-shadow .2s;
+    }
+    .field-input::placeholder { color:rgba(148,163,184,0.4); }
+    .field-input:focus { border-color:rgba(6,182,212,0.5); box-shadow:0 0 0 3px rgba(6,182,212,0.08); }
+    .field-input.is-error { border-color:rgba(251,113,133,0.6)!important; box-shadow:0 0 0 3px rgba(251,113,133,0.07)!important; }
+
+    .input-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:rgba(148,163,184,0.4); width:16px; height:16px; pointer-events:none; }
+    .eye-btn    { position:absolute; right:12px; top:50%; transform:translateY(-50%); color:rgba(148,163,184,0.35); background:none; border:none; cursor:pointer; display:flex; padding:2px; }
+    .eye-btn:hover { color:rgba(148,163,184,0.75); }
+
+    .btn-submit {
+        width:100%; padding:12px; border-radius:10px;
+        background:linear-gradient(135deg,#0ea5e9,#06b6d4,#14b8a6);
+        color:#fff; font-weight:700; font-size:14px; border:none; cursor:pointer;
+        box-shadow:0 4px 20px rgba(6,182,212,0.28); transition:opacity .2s, transform .15s;
+    }
+    .btn-submit:hover { opacity:.9; transform:translateY(-1px); }
+
+    .tab-active   { background:linear-gradient(135deg,#0ea5e9,#06b6d4,#14b8a6); color:#fff; box-shadow:0 2px 12px rgba(6,182,212,0.3); }
+    .tab-inactive { color:rgba(148,163,184,0.55); }
+</style>
+
+<div class="ambient"></div>
+
+<div class="w-full min-h-screen flex flex-col items-center justify-center px-4 py-6">
+
+    {# Brand #}
+    <div class="flex flex-col items-center mb-5">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center mb-2.5 shadow-[0_0_30px_rgba(6,182,212,0.35)] overflow-hidden">
+            <img src="{% static 'assets/images/Icon-RondaDigital.png' %}"
+                 alt="RondaDigital Icon"
+                 class="w-full h-full object-cover rounded-2xl">
+        </div>
+        <h1 class="text-white font-bold text-xl tracking-tight">RondaDigital</h1>
+        <p class="text-slate-500 text-xs mt-0.5 tracking-wide">Sistem Keamanan Lingkungan Berbasis Web</p>
+    </div>
+
+    {# Card #}
+    <div class="w-full max-w-[460px] bg-slate-950/40 backdrop-blur-md border border-slate-800/60 rounded-2xl px-10 py-8 shadow-2xl">
+
+        {# Tab Switcher #}
+        <div class="flex gap-1.5 bg-slate-900/60 rounded-xl p-1 mb-5">
+            <a href="{% url 'account:login_view' %}" class="flex-1 text-center py-2 text-sm font-semibold rounded-lg tab-inactive hover:text-slate-300 transition-colors">Masuk</a>
+            <span class="flex-1 text-center py-2 text-sm font-semibold rounded-lg tab-active cursor-default">Daftar</span>
+        </div>
+
+        <form method="POST" action="{% url 'account:register_view' %}" novalidate>
+            {% csrf_token %}
+
+            {# ── Input: Nama Lengkap ── #}
+            <div class="mb-2.5">
+                <label class="text-slate-400 text-[11px] font-semibold uppercase tracking-widest mb-1.5 block">Nama Lengkap</label>
+                <div class="relative">
+                    <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.412A9.957 9.957 0 0010 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 00-13.074.003z"/>
+                    </svg>
+                    <input type="text" name="nama_lengkap"
+                           placeholder="Nama sesuai KTP"
+                           value="{{ form.nama_lengkap.value|default:'' }}"
+                           class="field-input {% if form.nama_lengkap.errors %}is-error{% endif %}">
+                </div>
+                <div class="h-5 mt-1">
+                    {% if form.nama_lengkap.errors %}
+                        <p class="text-rose-400 text-[11px] leading-5">{{ form.nama_lengkap.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# ── Input: Email ── #}
+            <div class="mb-2.5">
+                <label class="text-slate-400 text-[11px] font-semibold uppercase tracking-widest mb-1.5 block">Email</label>
+                <div class="relative">
+                    <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M3 4a2 2 0 00-2 2v1.161l8.441 4.221a1.25 1.25 0 001.118 0L19 7.162V6a2 2 0 00-2-2H3z"/>
+                        <path d="M19 8.839l-7.77 3.885a2.75 2.75 0 01-2.46 0L1 8.839V14a2 2 0 002 2h14a2 2 0 002-2V8.839z"/>
+                    </svg>
+                    <input type="email" name="email"
+                           placeholder="email@kamu.com"
+                           value="{{ form.email.value|default:'' }}"
+                           class="field-input {% if form.email.errors %}is-error{% endif %}">
+                </div>
+                <div class="h-5 mt-1">
+                    {% if form.email.errors %}
+                        <p class="text-rose-400 text-[11px] leading-5">{{ form.email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# ── Input: No HP ── #}
+            <div class="mb-2.5">
+                <label class="text-slate-400 text-[11px] font-semibold uppercase tracking-widest mb-1.5 block">No. HP / WhatsApp</label>
+                <div class="relative">
+                    <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M2 3.5A1.5 1.5 0 013.5 2h1.148a1.5 1.5 0 011.465 1.175l.716 3.223a1.5 1.5 0 01-1.052 1.767l-.933.267c-.41.117-.643.555-.48.95a11.542 11.542 0 006.254 6.254c.395.163.833-.07.95-.48l.267-.933a1.5 1.5 0 011.767-1.052l3.223.716A1.5 1.5 0 0118 16.352V17.5a1.5 1.5 0 01-1.5 1.5H15c-1.149 0-2.263-.15-3.326-.43A13.022 13.022 0 012.43 8.326 13.019 13.019 0 012 5V3.5z" clip-rule="evenodd"/>
+                    </svg>
+                    <input type="tel" name="no_hp"
+                           placeholder="08xx-xxxx-xxxx"
+                           value="{{ form.no_hp.value|default:'' }}"
+                           class="field-input {% if form.no_hp.errors %}is-error{% endif %}">
+                </div>
+                <div class="h-5 mt-1">
+                    {% if form.no_hp.errors %}
+                        <p class="text-rose-400 text-[11px] leading-5">{{ form.no_hp.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# ── Input: Password ── #}
+            <div class="mb-3">
+                <label class="text-slate-400 text-[11px] font-semibold uppercase tracking-widest mb-1.5 block">Password</label>
+                <div class="relative">
+                    <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd"/>
+                    </svg>
+                    <input type="password" name="password" id="pw-daftar"
+                           placeholder="Min. 8 karakter"
+                           class="field-input pr-10 {% if form.password.errors %}is-error{% endif %}">
+                    <button type="button" class="eye-btn" onclick="togglePw('pw-daftar',this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="h-5 mt-1">
+                    {% if form.password.errors %}
+                        <p class="text-rose-400 text-[11px] leading-5">{{ form.password.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn-submit">Buat Akun</button>
+            </div>
+
+            <p class="text-center text-slate-500 text-xs mt-4">
+                Sudah punya akun?
+                <a href="{% url 'account:login_view' %}" class="text-cyan-500 font-semibold hover:text-cyan-400 transition-colors">Masuk</a>
+            </p>
+        </form>
+    </div>
+
+    <p class="text-slate-600 text-xs mt-5 tracking-wide">&copy; 2026 RondaDigital. All rights reserved.</p>
+</div>
+
+<script>
+    function togglePw(id, btn) {
+        const input = document.getElementById(id);
+        input.type  = input.type === 'password' ? 'text' : 'password';
+        btn.style.opacity = input.type === 'text' ? '0.85' : '0.35';
+    }
+</script>
+{% endblock %}

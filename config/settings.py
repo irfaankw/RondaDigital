@@ -157,3 +157,7 @@ MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ── Email (Development: cetak ke terminal) ──
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'RondaDigital <noreply@rondadigital.id>'

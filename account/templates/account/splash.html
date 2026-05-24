@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Memuat RondaDigital...{% endblock %}
+
+{% block content %}
+<div id="splash" class="fixed inset-0 flex flex-col items-center justify-center z-50 transition-opacity duration-500 ease-out select-none"
+     style="background-color: #020d20;">
+
+    <div class="absolute inset-0 bg-[linear-gradient(rgba(0,242,254,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,242,254,0.02)_1px,transparent_1px)] bg-[size:30px_30px] pointer-events-none z-0"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,242,254,0.06)_0%,transparent_70%)] pointer-events-none z-0"></div>
+
+    <div class="flex flex-col items-center w-full text-center z-10 -mt-12">
+        
+        <div class="w-full max-w-[520px] h-64 flex items-center justify-center filter drop-shadow-[0_0_55px_rgba(0,242,254,0.3)] animate-pulse duration-[3000ms]">
+            <img id="logo" src="{% static 'assets/images/Logo-RondaDigital.png' %}" alt="RondaDigital" class="w-full h-full object-contain">
+        </div>
+
+        <div class="w-full max-w-[260px] -mt-10 px-2">
+            <div class="w-full h-[3px] bg-slate-950/80 rounded-full overflow-hidden p-[0.5px] border border-slate-800/40">
+                <div id="bar" class="h-full bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 w-0 rounded-full shadow-[0_0_12px_rgba(0,242,254,0.6)] transition-all duration-75 ease-out"></div>
+            </div>
+            
+            <div class="flex justify-between items-center mt-2.5 font-mono">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-1 h-1 rounded-full bg-cyan-400 animate-ping"></span>
+                    <span id="status" class="text-slate-400 text-[10px] tracking-widest uppercase font-semibold">Initializing...</span>
+                </div>
+                <span id="pct" class="text-cyan-400 text-[10px] font-bold">0%</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="flash" class="fixed inset-0 bg-white opacity-0 pointer-events-none z-[60] transition-opacity duration-200"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const steps = [
+        { at: 0,  text: "Initializing system..." },
+        { at: 25, text: "Loading patrol modules..." },
+        { at: 55, text: "Syncing citizen database..." },
+        { at: 80, text: "Securing network link..." },
+        { at: 95, text: "Almost ready..." }
+    ];
+
+    const barEl    = document.getElementById('bar');
+    const pctEl    = document.getElementById('pct');
+    const statusEl = document.getElementById('status');
+    const splash   = document.getElementById('splash');
+    const flash    = document.getElementById('flash');
+    
+    const duration = 2000; 
+    const start    = performance.now();
+
+    function tick(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        const easedProgress = progress < 0.5 
+            ? 2 * progress * progress 
+            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+        const currentPct = Math.round(easedProgress * 100);
+        
+        barEl.style.width = currentPct + '%';
+        pctEl.textContent = currentPct + '%';
+        
+        steps.forEach(s => { 
+            if (currentPct >= s.at) statusEl.textContent = s.text; 
+        });
+
+        if (progress < 1) {
+            requestAnimationFrame(tick);
+        } else {
+            pctEl.textContent = '100%';
+            statusEl.textContent = 'SYSTEM READY';
+            setTimeout(triggerExit, 150);
+        }
+    }
+
+    function triggerExit() {
+        splash.classList.add('opacity-0');
+        
+        setTimeout(() => {
+            splash.classList.add('hidden');
+            flash.classList.remove('opacity-0');
+            flash.classList.add('opacity-100');
+            
+            setTimeout(() => {
+                {% if user.is_authenticated %}
+                    window.location.href = "{% url 'account:home' %}";
+                {% else %}
+                    window.location.href = "{% url 'account:login_view' %}";
+                {% endif %}
+            }, 180); 
+        }, 500); 
+    }
+
+    requestAnimationFrame(tick);
+});
+</script>
+{% endblock %}

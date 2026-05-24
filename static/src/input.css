@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+/* Kasih petunjuk path buat si Tailwind v4 karena Django belum ada di Framework Guides resmi */
+@source "../../templates/**/*.html";
+@source "../../**/templates/**/*.html";

@@ -1,3 +1,4 @@
 from django.shortcuts import render
 
-# Create your views here.
+def petugas_home(request):
+    return render(request, 'patrol/petugas_home.html')

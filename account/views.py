@@ -65,7 +65,13 @@ def login_view(request):
 
     login(request, user)
     _get_or_create_profile(user)
-    return redirect('account:home_index')
+    profile = user.profile
+    if profile.role == 'RT':
+        return redirect('dashboard_rt:dashboard')
+    elif profile.role == 'PETUGAS':
+        return redirect('patrol:petugas_home')
+    else:
+        return redirect('account:home_index')
 
 def register_view(request):
     if request.method != 'POST':

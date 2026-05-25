@@ -7,9 +7,9 @@ from django.contrib.auth import views as auth_views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path('', include('account.urls', namespace='account')),
-    # path('patrol/', include('patrol.urls', namespace='patrol')),
+    path('panel-rt/', include('dashboard_rt.urls', namespace='dashboard_rt')),
+    path('patroli/', include('patrol.urls', namespace='patrol')),
     # path('emergency/', include('emergency.urls', namespace='emergency')),
-    # path('dashboard-rt/', include('dashboard_rt.urls', namespace='dashboard_rt')),
     
     # ── Password Reset Confirm & Complete (bawaan Django) ──
     path(

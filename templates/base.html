@@ -20,12 +20,26 @@
     <div class="absolute inset-0 grid-bg pointer-events-none z-0"></div>
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[radial-gradient(circle_at_50%_50%,rgba(0,242,254,0.06)_0%,transparent_70%)] pointer-events-none z-0"></div>
 
-    {% include "snippets/navbar.html" %}
-
-    <main class="flex-grow relative z-10 w-full">
+    {# ── KONTEN UTAMA (Ditambahkan pb-32 agar konten tidak tertutup navbar bawah) ── #}
+    <main class="flex-grow relative z-10 w-full pb-20">
         {% block content %}
         {% endblock content %}
     </main>
+
+    {# ── LOGIKA RENDER NAVBAR ── #}
+    {% if user.is_authenticated and user_profile %}
+        {% if request.resolver_match.url_name != 'landing_index' %}
+            {% if user_profile.role != 'RT' %}
+                {% if not user_profile.is_verified %}
+                    {% include 'snippets/navbar_warga_tunggu.html' %}
+                {% elif user_profile.role == 'PETUGAS' %}
+                    {% include 'snippets/navbar_petugas.html' %}
+                {% else %}
+                    {% include 'snippets/navbar_warga_aktif.html' %}
+                {% endif %}
+            {% endif %}
+        {% endif %}
+    {% endif %}
 
 </body>
 </html>

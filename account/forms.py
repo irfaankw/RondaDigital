@@ -1,87 +1,91 @@
 import re
 from django import forms
+from .models import NIKWhitelist, UserProfile
 
 
 class LoginForm(forms.Form):
-    identifier = forms.CharField(
-        error_messages={'required': 'Bidang ini wajib diisi.'}
+    nik = forms.CharField(
+        max_length=16,
+        label='NIK',
+        error_messages={'required': 'NIK wajib diisi.'}
     )
     password = forms.CharField(
         widget=forms.PasswordInput,
-        error_messages={'required': 'Bidang ini wajib diisi.'}
+        label='Password',
+        error_messages={'required': 'Password wajib diisi.'}
     )
 
+    def clean_nik(self):
+        nik = self.cleaned_data.get('nik', '').strip()
+        if not nik.isdigit():
+            raise forms.ValidationError('NIK hanya boleh berupa angka.')
+        if len(nik) != 16:
+            raise forms.ValidationError('NIK harus terdiri dari 16 digit.')
+        return nik
 
 class RegisterForm(forms.Form):
+    nik = forms.CharField(
+        max_length=16,
+        label='NIK',
+        error_messages={'required': 'NIK wajib diisi.'}
+    )
     nama_lengkap = forms.CharField(
         max_length=100,
+        label='Nama Lengkap',
         error_messages={
-            'required':  'Bidang ini wajib diisi.',
-            'max_length': 'Nama lengkap terlalu panjang (maksimal 100 karakter).',
-        }
-    )
-    email = forms.EmailField(
-        error_messages={
-            'required': 'Bidang ini wajib diisi.',
-            'invalid':  'Format email tidak valid.',
+            'required':   'Nama lengkap wajib diisi.',
+            'max_length': 'Nama lengkap terlalu panjang.',
         }
     )
     no_hp = forms.CharField(
         max_length=15,
-        error_messages={
-            'required':   'Bidang ini wajib diisi.',
-            'max_length': 'Nomor telepon terlalu panjang (maksimal 15 digit).',
-        }
+        label='Nomor HP',
+        error_messages={'required': 'Nomor HP wajib diisi.'}
     )
     password = forms.CharField(
         widget=forms.PasswordInput,
-        error_messages={'required': 'Bidang ini wajib diisi.'}
+        label='Password',
+        error_messages={'required': 'Password wajib diisi.'}
     )
 
-    # ── Validasi nama_lengkap ─────────────────────────────────────────────────
+    def clean_nik(self):
+        nik = self.cleaned_data.get('nik', '').strip()
+        if not nik.isdigit() or len(nik) != 16:
+            raise forms.ValidationError('NIK harus 16 digit angka.')
+        if not NIKWhitelist.objects.filter(nik=nik, is_used=False).exists():
+            raise forms.ValidationError(
+                'NIK kamu belum terdaftar di sistem RT, atau sudah digunakan. '
+                'Hubungi RT untuk informasi lebih lanjut.'
+            )
+        return nik
+
     def clean_nama_lengkap(self):
-        nama = self.cleaned_data.get('nama_lengkap', '')
-
-        if not nama.strip():
-            raise forms.ValidationError('Nama lengkap tidak boleh hanya berisi spasi.')
-
+        nama = self.cleaned_data.get('nama_lengkap', '').strip()
+        nama = re.sub(r'\s+', ' ', nama)
+        if not nama:
+            raise forms.ValidationError('Nama lengkap tidak boleh kosong.')
         if not re.match(r'^[a-zA-Z\s]+$', nama):
             raise forms.ValidationError('Nama lengkap hanya boleh berisi huruf dan spasi.')
+        return nama
 
-        return nama.strip()
-
-    # ── Validasi email ────────────────────────────────────────────────────────
-    def clean_email(self):
-        email = self.cleaned_data.get('email', '')
-
-        if ' ' in email:
-            raise forms.ValidationError('Email tidak boleh mengandung spasi.')
-
-        return email.lower()
-
-    # ── Validasi no_hp ────────────────────────────────────────────────────────
     def clean_no_hp(self):
         no_hp = self.cleaned_data.get('no_hp', '').strip()
-
-        if not no_hp.isdigit():
-            raise forms.ValidationError('Nomor HP hanya boleh berupa angka.')
-
-        if len(no_hp) < 10:
-            raise forms.ValidationError('Nomor telepon terlalu pendek (minimal 10 digit).')
-
+        if not no_hp.isdigit() or len(no_hp) < 10:
+            raise forms.ValidationError('Nomor HP tidak valid (minimal 10 digit angka).')
         if not (no_hp.startswith('08') or no_hp.startswith('62')):
-            raise forms.ValidationError("Nomor HP harus diawali dengan '08' atau '62'.")
-
+            raise forms.ValidationError("Nomor HP harus diawali '08' atau '62'.")
+        if UserProfile.objects.filter(no_hp=no_hp).exists():
+            raise forms.ValidationError('Nomor HP ini sudah digunakan oleh akun lain.')
         return no_hp
 
-    # ── Validasi password ─────────────────────────────────────────────────────
     def clean_password(self):
         password = self.cleaned_data.get('password', '')
-
         if len(password) < 8:
-            raise forms.ValidationError('Password terlalu pendek (minimal 8 karakter).')
-
-        if password.isdigit():
-            raise forms.ValidationError('Password terlalu mudah. Gunakan kombinasi huruf dan angka.')
-
+            raise forms.ValidationError('Password minimal 8 karakter.')
+        if not re.search(r'[A-Z]', password):
+            raise forms.ValidationError('Password wajib mengandung minimal 1 huruf besar.')
+        if not re.search(r'[a-z]', password):
+            raise forms.ValidationError('Password wajib mengandung minimal 1 huruf kecil.')
+        if not re.search(r'[0-9]', password):
+            raise forms.ValidationError('Password wajib mengandung minimal 1 angka.')
         return password

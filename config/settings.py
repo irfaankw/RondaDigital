@@ -82,25 +82,10 @@ DATABASES = {
     }
 }
 
-
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
-]
-
+AUTH_PASSWORD_VALIDATORS = []
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
@@ -160,6 +145,11 @@ MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# ── Email (Development: cetak ke terminal) ──
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'RondaDigital <noreply@rondadigital.id>'
+NOMOR_WA_RT = os.getenv("NOMOR_WA_RT")
+WA_RESET_PASSWORD_TEXT = (
+    "Assalamualaikum Pak RT, saya ingin meminta reset password "
+    "akun RondaDigital saya.\n\n"
+    "NIK: [isi NIK kamu]\n"
+    "Nama: [isi nama kamu]\n\n"
+    "Mohon bantuannya. Terima kasih 🙏"
+)

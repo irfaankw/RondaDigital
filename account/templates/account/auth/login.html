@@ -68,24 +68,25 @@
         <form method="POST" action="{% url 'account:login_view' %}" novalidate>
             {% csrf_token %}
 
-            {# ── Input: Identifier ── #}
+            {# ── Input: NIK ── #}
             <div class="mb-2.5">
                 <label class="text-slate-400 text-[11px] font-semibold uppercase tracking-widest mb-1.5 block">
-                    Email atau No. HP
+                    NIK
                 </label>
                 <div class="relative">
                     <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M3 4a2 2 0 00-2 2v1.161l8.441 4.221a1.25 1.25 0 001.118 0L19 7.162V6a2 2 0 00-2-2H3z"/>
-                        <path d="M19 8.839l-7.77 3.885a2.75 2.75 0 01-2.46 0L1 8.839V14a2 2 0 002 2h14a2 2 0 002-2V8.839z"/>
+                        <path fill-rule="evenodd" d="M10 2a.75.75 0 01.75.75v.258a33.186 33.186 0 016.668.83.75.75 0 01-.336 1.461 31.28 31.28 0 00-1.103-.232l1.702 7.545a.75.75 0 01-.505.878A5.4 5.4 0 0115.5 13.5a5.4 5.4 0 01-1.676-.26.75.75 0 01-.505-.878l1.687-7.48a31.827 31.827 0 00-4.006-.501V15h2.5a.75.75 0 010 1.5h-6.5a.75.75 0 010-1.5H9.25V4.381a31.827 31.827 0 00-4.006.501l1.687 7.48a.75.75 0 01-.505.878A5.4 5.4 0 014.5 13.5a5.4 5.4 0 01-1.676-.26.75.75 0 01-.505-.878l1.702-7.545c-.372.069-.74.147-1.103.232a.75.75 0 01-.336-1.46 33.186 33.186 0 016.668-.831V2.75A.75.75 0 0110 2z" clip-rule="evenodd"/>
                     </svg>
-                    <input type="text" name="identifier"
-                           placeholder="email@kamu.com atau 08xx"
-                           value="{{ form.identifier.value|default:'' }}"
-                           class="field-input {% if form.identifier.errors %}is-error{% endif %}">
+                    <input type="text" name="nik"
+                        placeholder="16 digit NIK kamu"
+                        value="{{ form.nik.value|default:'' }}"
+                        maxlength="16"
+                        inputmode="numeric"
+                        class="field-input {% if form.nik.errors %}is-error{% endif %}">
                 </div>
                 <div class="h-5 mt-1">
-                    {% if form.identifier.errors %}
-                        <p class="text-rose-400 text-[11px] leading-5">{{ form.identifier.errors.0 }}</p>
+                    {% if form.nik.errors %}
+                        <p class="text-rose-400 text-[11px] leading-5">{{ form.nik.errors.0 }}</p>
                     {% endif %}
                 </div>
             </div>

@@ -1,0 +1,494 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profil — RondaDigital{% endblock %}
+
+{% block content %}
+<div class="w-full px-4 md:px-8 py-6">
+  <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6">
+
+    <div class="flex flex-col gap-4 lg:w-[300px] shrink-0">
+
+      <div class="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-6 flex flex-col items-center text-center backdrop-blur-md">
+
+        <div class="relative mb-4">
+          {% if profile.foto_profil %}
+            <img src="{{ profile.foto_profil.url }}" class="w-24 h-24 rounded-full object-cover border-2 border-cyan-400/50 cursor-pointer" alt="Foto Profil"
+                onclick="showLightbox('{{ profile.foto_profil.url }}')">
+          {% else %}
+            <div class="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-400/30 to-blue-600/30 border-2 border-cyan-400/50 flex items-center justify-center text-2xl font-bold text-cyan-400">
+              {% if profile.nama_lengkap %}{{ profile.nama_lengkap|slice:":2"|upper }}{% else %}{{ request.user.first_name|slice:":1"|upper }}{{ request.user.last_name|slice:":1"|upper }}{% endif %}
+            </div>
+          {% endif %}
+          <label for="id_foto_profil_quick" class="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center cursor-pointer hover:bg-slate-700 transition-colors" title="Ganti foto profil">
+            <svg class="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
+            </svg>
+          </label>
+          <form id="form-foto-profil" method="POST" enctype="multipart/form-data" action="{% url 'account:profile' %}">
+            {% csrf_token %}
+            <input type="hidden" name="upload_foto_profil" value="1">
+            <input type="file" id="id_foto_profil_quick" name="foto_profil" accept="image/*" capture="environment" class="hidden" onchange="this.form.submit()">
+          </form>
+        </div>
+
+        <h2 class="text-lg font-bold text-slate-100">{{ profile.nama_lengkap|default:request.user.get_full_name }}</h2>
+        <p class="text-slate-500 text-sm mt-0.5">Warga{% if profile.rt %} · RT {{ profile.rt }}{% endif %}{% if profile.rw %} RW {{ profile.rw }}{% endif %}</p>
+
+        <div class="mt-3">
+          {% if profile.is_verified %}
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/></svg>
+              Terverifikasi
+            </span>
+          {% elif profile.submission_status == 'pending' %}
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/15 border border-amber-500/30 text-amber-400">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z"/></svg>
+              Menunggu Verifikasi
+            </span>
+          {% else %}
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-500/15 border border-slate-500/30 text-slate-400">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
+              Belum Diverifikasi
+            </span>
+          {% endif %}
+        </div>
+
+        <div class="w-full border-t border-slate-700/50 mt-5"></div>
+
+        <div class="w-full flex items-center justify-center mt-5">
+          <div class="flex-1 flex flex-col items-center">
+            <span class="text-2xl font-bold text-slate-100">0</span>
+            <span class="text-[11px] text-slate-500 mt-0.5">Ronda Ikut</span>
+          </div>
+          <div class="w-px h-10 bg-slate-700/60 shrink-0"></div>
+          <div class="flex-1 flex flex-col items-center">
+            <span class="text-2xl font-bold text-slate-100">0</span>
+            <span class="text-[11px] text-slate-500 mt-0.5">Laporan</span>
+          </div>
+        </div>
+
+        <div class="w-full mt-5 text-left">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs font-semibold text-slate-400">Verifikasi Progress</span>
+            <span class="text-xs font-bold text-cyan-400">{{ progress }}/4</span>
+          </div>
+          <div class="w-full h-1.5 bg-slate-700/60 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-500" style="width: {% widthratio progress 4 100 %}%"></div>
+          </div>
+          <ul class="mt-3 space-y-2">
+            {% for step_name in step_list %}
+              <li class="flex items-center gap-2 text-xs {% if forloop.counter <= progress %}text-slate-300{% else %}text-slate-600{% endif %}">
+                {% if forloop.counter <= progress %}
+                  <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/></svg>
+                {% else %}
+                  <svg class="w-4 h-4 shrink-0 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/></svg>
+                {% endif %}
+                {{ step_name }}
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="bg-slate-900/60 border border-slate-700/50 rounded-2xl overflow-hidden backdrop-blur-md">
+        {% if profile.role == 'PETUGAS' %}
+        <button onclick="document.getElementById('modal-switch-role').classList.remove('hidden')"
+                class="w-full flex items-center gap-3 px-5 py-4 text-sm font-medium text-slate-300 hover:bg-slate-800/60 transition-colors border-b border-slate-700/50 text-left">
+            <svg class="w-5 h-5 text-cyan-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 3M21 7.5H7.5"/>
+            </svg>
+            {% if profile.get_active_role == 'PETUGAS' %}Kembali ke Mode Warga{% else %}Masuk Mode Petugas ⚡{% endif %}
+        </button>
+        {% else %}
+        <div class="w-full flex items-center gap-3 px-5 py-4 text-sm font-medium text-slate-600 border-b border-slate-700/50 cursor-not-allowed"
+            title="Kamu bukan bagian dari petugas ronda">
+            <svg class="w-5 h-5 text-slate-700 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 3M21 7.5H7.5"/>
+            </svg>
+            Masuk Mode Petugas
+            <span class="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-800 text-slate-600 border border-slate-700/50">Terkunci</span>
+        </div>
+        {% endif %}
+        <button onclick="document.getElementById('modal-kontak').classList.remove('hidden')"
+                class="w-full flex items-center gap-3 px-5 py-4 text-sm font-medium text-slate-300 hover:bg-slate-800/60 transition-colors border-b border-slate-700/50 text-left">
+          <svg class="w-5 h-5 text-rose-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/>
+          </svg>
+          Kontak Darurat
+        </button>
+        <a href="{% url 'account:logout_view' %}" class="w-full flex items-center gap-3 px-5 py-4 text-sm font-medium text-rose-400 hover:bg-slate-800/60 transition-colors text-left">
+          <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+          </svg>
+          Keluar
+        </a>
+      </div>
+    </div>
+
+    <div class="flex-1 bg-slate-900/60 border border-slate-700/50 rounded-2xl p-6 md:p-8 backdrop-blur-md">
+
+      <h2 class="text-lg font-bold text-slate-100 mb-1">Formulir Data Identitas Diri</h2>
+      <p class="text-slate-500 text-sm mb-6">
+        {% if profile.submission_status == 'verified' %}Data kamu telah terverifikasi oleh Ketua RT.
+        {% elif profile.submission_status == 'pending' %}Data kamu sedang menunggu verifikasi Ketua RT.
+        {% else %}Lengkapi data identitas kamu untuk proses verifikasi oleh Ketua RT.{% endif %}
+      </p>
+
+      <form method="POST" enctype="multipart/form-data" action="{% url 'account:profile' %}" id="form-identitas" novalidate>
+        {% csrf_token %}
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          {% for field in readonly_data %}
+            <div>
+              <label class="block text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-1.5">{{ field.label }}</label>
+              <input type="text" value="{{ field.value }}" disabled class="w-full px-4 py-2.5 rounded-xl bg-slate-800/40 border border-slate-700/40 text-slate-400 text-sm cursor-not-allowed">
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div class="md:col-span-2">
+            <label class="block text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-1.5">Alamat Lengkap <span class="text-rose-400">*</span></label>
+            <input type="text" name="alamat" value="{{ profile.alamat }}" placeholder="Masukkan alamat" {% if is_locked %}disabled{% endif %} required
+                   class="w-full px-4 py-2.5 rounded-xl bg-slate-800/60 border {% if form.alamat.errors %}border-rose-500/60{% else %}border-slate-700/50{% endif %} text-slate-200 text-sm placeholder-slate-600 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors {% if is_locked %}opacity-60 cursor-not-allowed{% endif %}">
+            {% if form.alamat.errors %}<p class="text-rose-400 text-[11px] mt-1">{{ form.alamat.errors.0 }}</p>{% endif %}
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-1.5">Tanggal Lahir <span class="text-rose-400">*</span></label>
+            <input type="date" name="tanggal_lahir" value="{{ profile.tanggal_lahir|date:'Y-m-d' }}" {% if is_locked %}disabled{% endif %} required
+                   class="w-full px-4 py-2.5 rounded-xl bg-slate-800/60 border {% if form.tanggal_lahir.errors %}border-rose-500/60{% else %}border-slate-700/50{% endif %} text-slate-200 text-sm focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors {% if is_locked %}opacity-60 cursor-not-allowed{% endif %}">
+            {% if form.tanggal_lahir.errors %}<p class="text-rose-400 text-[11px] mt-1">{{ form.tanggal_lahir.errors.0 }}</p>{% endif %}
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label class="block text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-1.5">Pekerjaan <span class="text-rose-400">*</span></label>
+            <input type="text" name="pekerjaan" value="{{ profile.pekerjaan }}" placeholder="Masukkan pekerjaan" {% if is_locked %}disabled{% endif %} required
+                   class="w-full px-4 py-2.5 rounded-xl bg-slate-800/60 border {% if form.pekerjaan.errors %}border-rose-500/60{% else %}border-slate-700/50{% endif %} text-slate-200 text-sm placeholder-slate-600 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors {% if is_locked %}opacity-60 cursor-not-allowed{% endif %}">
+            {% if form.pekerjaan.errors %}<p class="text-rose-400 text-[11px] mt-1">{{ form.pekerjaan.errors.0 }}</p>{% endif %}
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-1.5">RT <span class="text-rose-400">*</span></label>
+            <input type="text" name="rt" value="{{ profile.rt|default:'' }}" placeholder="Contoh: 04" {% if is_locked %}disabled{% endif %} required
+                   class="w-full px-4 py-2.5 rounded-xl bg-slate-800/60 border {% if form.rt.errors %}border-rose-500/60{% else %}border-slate-700/50{% endif %} text-slate-200 text-sm placeholder-slate-600 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors {% if is_locked %}opacity-60 cursor-not-allowed{% endif %}">
+            {% if form.rt.errors %}<p class="text-rose-400 text-[11px] mt-1">{{ form.rt.errors.0 }}</p>{% endif %}
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-1.5">RW <span class="text-rose-400">*</span></label>
+            <input type="text" name="rw" value="{{ profile.rw|default:'' }}" placeholder="Contoh: 02" {% if is_locked %}disabled{% endif %} required
+                   class="w-full px-4 py-2.5 rounded-xl bg-slate-800/60 border {% if form.rw.errors %}border-rose-500/60{% else %}border-slate-700/50{% endif %} text-slate-200 text-sm placeholder-slate-600 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors {% if is_locked %}opacity-60 cursor-not-allowed{% endif %}">
+            {% if form.rw.errors %}<p class="text-rose-400 text-[11px] mt-1">{{ form.rw.errors.0 }}</p>{% endif %}
+          </div>
+        </div>
+
+        <div class="mb-6">
+          <label class="block text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-2">Jenis Kelamin <span class="text-rose-400">*</span></label>
+            <div class="flex gap-4">
+            <label class="flex items-center gap-2 {% if is_locked %}opacity-60 cursor-not-allowed{% else %}cursor-pointer{% endif %}">
+                <input type="radio" name="jenis_kelamin" value="L"
+                {% if profile.jenis_kelamin == 'L' %}checked{% endif %}
+                {% if is_locked %}disabled{% endif %} required
+                class="sr-only peer">
+                <div class="w-4 h-4 rounded-full border-2 border-slate-500 peer-checked:border-cyan-400 peer-checked:bg-cyan-400 flex items-center justify-center transition-colors">
+                <div class="w-1.5 h-1.5 rounded-full bg-slate-900 opacity-0 peer-checked:opacity-100"></div>
+                </div>
+                <span class="text-sm text-slate-300">Laki-laki</span>
+            </label>
+            <label class="flex items-center gap-2 {% if is_locked %}opacity-60 cursor-not-allowed{% else %}cursor-pointer{% endif %}">
+                <input type="radio" name="jenis_kelamin" value="P"
+                {% if profile.jenis_kelamin == 'P' %}checked{% endif %}
+                {% if is_locked %}disabled{% endif %}
+                class="sr-only peer">
+                <div class="w-4 h-4 rounded-full border-2 border-slate-500 peer-checked:border-cyan-400 peer-checked:bg-cyan-400 flex items-center justify-center transition-colors">
+                <div class="w-1.5 h-1.5 rounded-full bg-slate-900 opacity-0 peer-checked:opacity-100"></div>
+                </div>
+                <span class="text-sm text-slate-300">Perempuan</span>
+            </label>
+            </div>
+          {% if form.jenis_kelamin.errors %}<p class="text-rose-400 text-[11px] mt-1">{{ form.jenis_kelamin.errors.0 }}</p>{% endif %}
+        </div>
+
+        {# ── Upload Dokumen ── #}
+        <div class="mb-6">
+        <label class="block text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-1">
+            Upload Dokumen <span class="text-rose-400">*</span>
+            <span class="normal-case font-normal text-slate-600 ml-1">(minimal salah satu)</span>
+        </label>
+        {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}
+            <p class="text-rose-400 text-[11px] mb-2">{{ error }}</p>
+            {% endfor %}
+        {% endif %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            {# KTP #}
+            <div id="area-ktp" class="relative border-2 border-dashed rounded-xl p-5 flex flex-col items-center justify-center text-center transition-colors min-h-[220px]
+            {% if is_locked and not profile.foto_ktp %}border-slate-800/20 opacity-40{% else %}border-slate-700/30{% endif %}">
+
+            {% if profile.foto_ktp %}
+                <img src="{{ profile.foto_ktp.url }}" class="w-full h-36 object-cover rounded-lg mb-3" alt="KTP">
+                <p class="text-xs text-emerald-400 font-medium mb-3">✓ KTP terupload</p>
+                {% if not is_locked %}
+                <div class="flex gap-2">
+                    <button type="button" onclick="showLightbox('{{ profile.foto_ktp.url }}')"
+                    class="px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition-colors">
+                    Lihat KTP
+                    </button>
+                    <button type="button" onclick="clearDoc('ktp')"
+                    class="px-3 py-1.5 text-xs font-medium text-rose-400 bg-rose-950/20 border border-rose-900/50 rounded-lg hover:bg-rose-900/30 transition-colors">
+                    Ganti File
+                    </button>
+                </div>
+                {% else %}
+                <button type="button" onclick="showLightbox('{{ profile.foto_ktp.url }}')"
+                    class="px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition-colors">
+                    Lihat KTP
+                </button>
+                {% endif %}
+                <input type="file" id="id_foto_ktp" name="foto_ktp" accept="image/*" class="hidden" onchange="handlePreview(this, 'ktp')">
+
+            {% else %}
+                {% if is_locked %}
+                <div class="absolute inset-0 rounded-xl cursor-not-allowed z-10"></div>
+                {% else %}
+                <label for="id_foto_ktp" class="absolute inset-0 cursor-pointer rounded-xl"></label>
+                {% endif %}
+                <svg class="w-8 h-8 text-slate-600 mb-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z"/>
+                </svg>
+                <p class="text-sm font-medium text-slate-400 pointer-events-none">Foto KTP</p>
+                <p class="text-xs text-slate-600 mt-0.5 mb-3 pointer-events-none">JPG, PNG · Maks. 5MB</p>
+                {% if is_locked %}
+                <div class="px-4 py-1.5 rounded-lg text-xs font-medium border border-slate-700/30 text-slate-600 pointer-events-none">Tidak Diisi</div>
+                {% else %}
+                <div class="px-4 py-1.5 rounded-lg text-xs font-medium border border-slate-600 text-slate-400 pointer-events-none">Pilih File KTP</div>
+                <input type="file" id="id_foto_ktp" name="foto_ktp" accept="image/*" class="hidden" onchange="handlePreview(this, 'ktp')">
+                {% endif %}
+            {% endif %}
+            </div>
+
+            {# KK #}
+            <div id="area-kk" class="relative border-2 border-dashed rounded-xl p-5 flex flex-col items-center justify-center text-center transition-colors min-h-[220px]
+            {% if is_locked and not profile.foto_kk %}border-slate-800/20 opacity-40{% else %}border-slate-700/30{% endif %}">
+
+            {% if profile.foto_kk %}
+                <img src="{{ profile.foto_kk.url }}" class="w-full h-36 object-cover rounded-lg mb-3" alt="KK">
+                <p class="text-xs text-emerald-400 font-medium mb-3">✓ KK terupload</p>
+                {% if not is_locked %}
+                <div class="flex gap-2">
+                    <button type="button" onclick="showLightbox('{{ profile.foto_kk.url }}')"
+                    class="px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition-colors">
+                    Lihat KK
+                    </button>
+                    <button type="button" onclick="clearDoc('kk')"
+                    class="px-3 py-1.5 text-xs font-medium text-rose-400 bg-rose-950/20 border border-rose-900/50 rounded-lg hover:bg-rose-900/30 transition-colors">
+                    Ganti File
+                    </button>
+                </div>
+                {% else %}
+                <button type="button" onclick="showLightbox('{{ profile.foto_kk.url }}')"
+                    class="px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition-colors">
+                    Lihat KK
+                </button>
+                {% endif %}
+                <input type="file" id="id_foto_kk" name="foto_kk" accept="image/*" class="hidden" onchange="handlePreview(this, 'kk')">
+
+            {% else %}
+                {% if is_locked %}
+                <div class="absolute inset-0 rounded-xl cursor-not-allowed z-10"></div>
+                {% else %}
+                <label for="id_foto_kk" class="absolute inset-0 cursor-pointer rounded-xl"></label>
+                {% endif %}
+                <svg class="w-8 h-8 text-slate-600 mb-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                </svg>
+                <p class="text-sm font-medium text-slate-400 pointer-events-none">Foto KK</p>
+                <p class="text-xs text-slate-600 mt-0.5 mb-3 pointer-events-none">JPG, PNG · Maks. 5MB</p>
+                {% if is_locked %}
+                <div class="px-4 py-1.5 rounded-lg text-xs font-medium border border-slate-700/30 text-slate-600 pointer-events-none">Tidak Diisi</div>
+                {% else %}
+                <div class="px-4 py-1.5 rounded-lg text-xs font-medium border border-slate-600 text-slate-400 pointer-events-none">Pilih File KK</div>
+                <input type="file" id="id_foto_kk" name="foto_kk" accept="image/*" class="hidden" onchange="handlePreview(this, 'kk')">
+                {% endif %}
+            {% endif %}
+            </div>
+
+        </div>
+        </div>
+
+        {% if is_locked %}
+            {% if profile.submission_status == 'pending' and wa_url %}
+                <a href="{{ wa_url }}" target="_blank" rel="noopener noreferrer"
+                class="flex items-center justify-center gap-2 w-full py-3 rounded-xl 
+                        bg-emerald-900/20 border border-emerald-800/50 text-emerald-400 
+                        hover:bg-emerald-900/40 hover:border-emerald-700 
+                        text-sm font-semibold transition-all">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                    </svg>
+                    Hubungi RT via WhatsApp
+                </a>
+            {% elif profile.submission_status == 'verified' %}
+                <div class="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-emerald-900/20 border border-emerald-800/50 text-emerald-400 text-sm font-semibold text-center">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/>
+                    </svg>
+                    Data Telah Terverifikasi
+                </div>
+            {% endif %}
+        {% else %}
+            <button type="submit" 
+                    class="w-full py-3 rounded-xl 
+                        bg-cyan-900/30 border border-cyan-800/60 text-cyan-400 
+                        hover:bg-cyan-900/50 hover:border-cyan-700 
+                        text-sm font-semibold transition-all">
+                Kirim Data
+            </button>
+        {% endif %}
+
+      </form>
+    </div>
+  </div>
+</div>
+
+{% if profile.foto_ktp %}
+  <div id="lightbox-ktp" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm px-4" onclick="this.classList.add('hidden')">
+    <img src="{{ profile.foto_ktp.url }}" class="max-w-full max-h-[90vh] rounded-xl object-contain shadow-2xl" alt="KTP">
+  </div>
+{% endif %}
+
+{% if profile.foto_kk %}
+  <div id="lightbox-kk" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm px-4" onclick="this.classList.add('hidden')">
+    <img src="{{ profile.foto_kk.url }}" class="max-w-full max-h-[90vh] rounded-xl object-contain shadow-2xl" alt="KK">
+  </div>
+{% endif %}
+
+<div id="modal-kontak" class="hidden fixed inset-0 z-[100] flex items-center justify-center px-4" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+  <div class="relative w-full max-w-sm bg-slate-900 border border-slate-700/60 rounded-2xl p-6 shadow-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-base font-bold text-slate-100">Kontak Darurat Petugas</h3>
+      <button onclick="document.getElementById('modal-kontak').classList.add('hidden')" class="text-slate-500 hover:text-slate-300 transition-colors">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    {% if petugas %}
+      <ul class="space-y-3">
+        {% for p in petugas %}
+          <li class="flex items-center justify-between py-2 border-b border-slate-800/60 last:border-0">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-xs font-bold text-orange-400 shrink-0">{{ p.nama_lengkap|slice:":2"|upper }}</div>
+              <div>
+                <p class="text-sm font-medium text-slate-200">{{ p.nama_lengkap }}</p>
+                <p class="text-xs text-slate-500">Petugas{% if p.rt %} · RT {{ p.rt }}{% endif %}</p>
+              </div>
+            </div>
+            {% if p.no_hp %}<a href="tel:{{ p.no_hp }}" class="text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors">{{ p.no_hp }}</a>{% else %}<span class="text-xs text-slate-600">-</span>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-slate-500 text-sm text-center py-4">Belum ada petugas terdaftar.</p>
+    {% endif %}
+  </div>
+</div>
+
+{% if profile.role == 'PETUGAS' %}
+  <div id="modal-switch-role" class="hidden fixed inset-0 z-[100] flex items-center justify-center px-4" onclick="if(event.target===this)this.classList.add('hidden')">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div class="relative w-full max-w-sm bg-slate-900 border border-slate-700/60 rounded-2xl p-8 shadow-2xl text-center">
+      <div class="w-16 h-16 rounded-2xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+        </svg>
+      </div>
+      {% if profile.get_active_role == 'PETUGAS' %}
+        <h3 class="text-lg font-bold text-slate-100 mb-2">Kembali ke Mode Warga</h3>
+        <p class="text-slate-400 text-sm mb-6">Fitur monitoring dan absensi shift tidak akan aktif.</p>
+      {% else %}
+        <h3 class="text-lg font-bold text-slate-100 mb-2">Masuk Mode Petugas</h3>
+        <p class="text-orange-400 text-sm font-medium mb-1">Anda akan memasuki Mode Petugas</p>
+        <p class="text-slate-500 text-xs mb-6">Fitur monitoring, alert darurat, dan absensi shift akan aktif.</p>
+      {% endif %}
+      <form method="POST" action="{% url 'account:switch_role' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.path }}">
+        <button type="submit" class="w-full py-3 rounded-xl font-bold text-sm text-white transition-all {% if profile.get_active_role == 'PETUGAS' %}bg-slate-700 hover:bg-slate-600{% else %}bg-orange-600 hover:bg-orange-500 shadow-[0_4px_20px_rgba(234,88,12,0.3)]{% endif %}">
+          {% if profile.get_active_role == 'PETUGAS' %}Kembali ke Mode Warga{% else %}Siap Bertugas!{% endif %}
+        </button>
+      </form>
+      <button onclick="document.getElementById('modal-switch-role').classList.add('hidden')" class="mt-3 text-xs text-slate-600 hover:text-slate-400 transition-colors">Batal</button>
+    </div>
+  </div>
+{% endif %}
+
+<div id="lightbox" class="hidden fixed inset-0 z-[99999] bg-black/95 flex items-center justify-center p-4" onclick="this.classList.add('hidden')">
+  <img id="lightbox-img" src="" class="max-w-full max-h-[90vh] rounded-xl object-contain" alt="Preview">
+</div>
+
+<script>
+var ICON = {
+  ktp: `<path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z"/>`,
+  kk: `<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>`
+};
+
+function showLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.remove('hidden');
+  document.getElementById('navbar-desktop').style.zIndex = '1';
+}
+
+document.getElementById('lightbox').addEventListener('click', function() {
+  document.getElementById('navbar-desktop').style.zIndex = '';
+});
+
+function handlePreview(input, type) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var src = e.target.result;
+    var label = type === 'ktp' ? 'KTP' : 'KK';
+    document.getElementById('area-' + type).innerHTML = `
+      <img src="${src}" class="w-full h-36 object-cover rounded-lg mb-3 cursor-zoom-in" onclick="showLightbox('${src}')" alt="${label}">
+      <p class="text-xs text-emerald-400 font-medium mb-3">✓ ${file.name}</p>
+      <div class="flex gap-2">
+        <button type="button" onclick="showLightbox('${src}')" class="px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition-colors">Lihat ${label}</button>
+        <button type="button" onclick="batalPilih('${type}')" class="px-3 py-1.5 text-xs font-medium text-rose-400 bg-rose-950/20 border border-rose-900/50 rounded-lg hover:bg-rose-900/30 transition-colors">Batal Pilih</button>
+      </div>
+      <input type="file" id="id_foto_${type}" name="foto_${type}" accept="image/*" class="hidden" onchange="handlePreview(this, '${type}')">
+    `;
+
+    // Transfer file asli ke input yang baru dibuat
+    var dt = new DataTransfer();
+    dt.items.add(file);
+    document.getElementById('id_foto_' + type).files = dt.files;
+  };
+  reader.readAsDataURL(file);
+}
+
+function batalPilih(type) {
+  document.getElementById('area-' + type).innerHTML = `
+    <label for="id_foto_${type}" class="absolute inset-0 cursor-pointer rounded-xl"></label>
+    <svg class="w-8 h-8 text-slate-600 mb-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">${ICON[type]}</svg>
+    <p class="text-sm font-medium text-slate-400 pointer-events-none">${type === 'ktp' ? 'Foto KTP' : 'Foto KK'}</p>
+    <p class="text-xs text-slate-600 mt-0.5 mb-3 pointer-events-none">JPG, PNG · Maks. 5MB</p>
+    <div class="px-4 py-1.5 rounded-lg text-xs font-medium border border-slate-600 text-slate-400 pointer-events-none">${type === 'ktp' ? 'Pilih File KTP' : 'Pilih File KK'}</div>
+    <input type="file" id="id_foto_${type}" name="foto_${type}" accept="image/*" class="hidden" onchange="handlePreview(this, '${type}')">
+  `;
+}
+
+function clearDoc(type) {
+  var input = document.createElement('input');
+  input.type = 'hidden';
+  input.name = 'clear_' + type;
+  input.value = '1';
+  document.getElementById('form-identitas').appendChild(input);
+  document.getElementById('form-identitas').submit();
+}
+</script>
+
+{% endblock %}

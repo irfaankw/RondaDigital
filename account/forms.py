@@ -1,7 +1,13 @@
 import re
 from django import forms
+from django.core.exceptions import ValidationError
 from .models import NIKWhitelist, UserProfile
 
+# ── Validator reusable untuk file upload ──────────────────────
+def validate_image_size(file):
+    """Tolak file gambar lebih dari 5MB di level backend."""
+    if hasattr(file, 'size') and file.size > 5 * 1024 * 1024:
+        raise ValidationError('Ukuran file terlalu besar. Maksimal 5MB.')
 
 class LoginForm(forms.Form):
     nik = forms.CharField(
@@ -89,3 +95,99 @@ class RegisterForm(forms.Form):
         if not re.search(r'[0-9]', password):
             raise forms.ValidationError('Password wajib mengandung minimal 1 angka.')
         return password
+
+class ProfileForm(forms.ModelForm):
+    """
+    Form untuk melengkapi data identitas warga.
+    Field: alamat, tanggal_lahir, pekerjaan, rt, rw,
+           jenis_kelamin, foto_profil, foto_ktp, foto_kk.
+    NIK & no_hp dikunci di view, tidak diproses di sini.
+    """
+    tanggal_lahir = forms.DateField(
+        required=True,
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        label='Tanggal Lahir',
+        error_messages={'required': 'Tanggal lahir wajib diisi.'}
+    )
+    alamat = forms.CharField(
+        required=True,
+        label='Alamat Lengkap',
+        error_messages={'required': 'Alamat wajib diisi.'}
+    )
+    pekerjaan = forms.CharField(
+        required=True,
+        label='Pekerjaan',
+        error_messages={'required': 'Pekerjaan wajib diisi.'}
+    )
+    rt = forms.CharField(
+        required=True,
+        max_length=10,
+        label='RT',
+        error_messages={'required': 'RT wajib diisi.'}
+    )
+    rw = forms.CharField(
+        required=True,
+        max_length=10,
+        label='RW',
+        error_messages={'required': 'RW wajib diisi.'}
+    )
+    jenis_kelamin = forms.ChoiceField(
+        required=True,
+        choices=[('', '---------'), ('L', 'Laki-laki'), ('P', 'Perempuan')],
+        label='Jenis Kelamin',
+        error_messages={'required': 'Jenis kelamin wajib dipilih.'}
+    )
+    foto_ktp = forms.ImageField(
+        required=False,
+        validators=[validate_image_size],
+        error_messages={'invalid_image': 'File bukan gambar yang valid.'}
+    )
+    foto_kk = forms.ImageField(
+        required=False,
+        validators=[validate_image_size],
+        error_messages={'invalid_image': 'File bukan gambar yang valid.'}
+    )
+
+    class Meta:
+        model  = UserProfile
+        fields = [
+            'alamat', 'tanggal_lahir', 'pekerjaan',
+            'rt', 'rw', 'jenis_kelamin',
+            'foto_profil', 'foto_ktp', 'foto_kk',
+        ]
+        # NIK dan no_hp sengaja tidak dimasukkan karena dikunci setelah registrasi
+
+    def clean_rt(self):
+        """Validasi angka + normalisasi ke 2 digit. '4' → '04'."""
+        rt = self.cleaned_data.get('rt', '').strip()
+        if not rt.isdigit():
+            raise forms.ValidationError('RT hanya boleh berisi angka.')
+        return rt.zfill(2)
+
+    def clean_rw(self):
+        """Validasi angka + normalisasi ke 2 digit. '2' → '02'."""
+        rw = self.cleaned_data.get('rw', '').strip()
+        if not rw.isdigit():
+            raise forms.ValidationError('RW hanya boleh berisi angka.')
+        return rw.zfill(2)
+
+    def clean(self):
+        cleaned  = super().clean()
+        foto_ktp = cleaned.get('foto_ktp')
+        foto_kk  = cleaned.get('foto_kk')
+
+        # Cek dokumen yang sudah tersimpan di DB menggunakan .name
+        # agar tidak bergantung pada boolean FieldFile yang tidak reliable
+        has_ktp = foto_ktp or (
+            self.instance.pk and self.instance.foto_ktp and self.instance.foto_ktp.name
+        )
+        has_kk = foto_kk or (
+            self.instance.pk and self.instance.foto_kk and self.instance.foto_kk.name
+        )
+
+        if not has_ktp and not has_kk:
+            raise forms.ValidationError(
+                'Upload minimal salah satu dokumen: Foto KTP atau Foto KK.'
+            )
+
+        return cleaned

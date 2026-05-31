@@ -7,7 +7,6 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
@@ -18,7 +17,6 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG") == "True"
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -34,6 +32,7 @@ INSTALLED_APPS = [
     "emergency.apps.EmergencyConfig",
     "patrol.apps.PatrolConfig",
     "storages",
+    'django_cleanup.apps.CleanupConfig',
 ]
 
 MIDDLEWARE = [
@@ -86,6 +85,8 @@ DATABASES = {
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = []
+
+LOGIN_URL = 'account:login_view'
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
@@ -145,11 +146,17 @@ MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-NOMOR_WA_RT = os.getenv("NOMOR_WA_RT")
+NOMOR_WA_RT = os.getenv("NOMOR_WA_RT", "6282196636162")
+# Template untuk Lupa Password
 WA_RESET_PASSWORD_TEXT = (
     "Assalamualaikum Pak RT, saya ingin meminta reset password "
     "akun RondaDigital saya.\n\n"
     "NIK: [isi NIK kamu]\n"
     "Nama: [isi nama kamu]\n\n"
     "Mohon bantuannya. Terima kasih 🙏"
+)
+# Template untuk Verifikasi Profil
+WA_PROFIL_TEXT = (
+    "Assalamualaikum Pak RT, saya sudah melengkapi profil saya "
+    "di RondaDigital. Mohon verifikasi data saya. Terima kasih."
 )

@@ -1,12 +1,13 @@
-import urllib.parse
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 
-from .forms import LoginForm, RegisterForm
+from .forms import LoginForm, RegisterForm, ProfileForm
 from .models import NIKWhitelist, UserProfile
 
+import urllib.parse
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -35,7 +36,6 @@ def _redirect_after_login(user):
     else:
         return redirect('account:home_index')
 
-
 # ── Views ─────────────────────────────────────────────────────────────────────
 
 def landing_index(request):
@@ -43,9 +43,8 @@ def landing_index(request):
         return _redirect_after_login(request.user)
     return render(request, 'account/splash.html')
 
+@login_required
 def home_index(request):
-    if not request.user.is_authenticated:
-        return redirect('account:login_view')
     # Admin tidak punya profile, arahkan ke admin panel
     if request.user.is_staff or request.user.is_superuser:
         return redirect('/admin/')
@@ -146,3 +145,81 @@ def forgot_password_view(request):
 def logout_view(request):
     logout(request)
     return redirect('account:landing_index')
+
+@login_required
+def profile_view(request):
+    profile = _get_or_create_profile(request.user)
+    petugas = UserProfile.objects.filter(role='PETUGAS', is_verified=True).select_related('user')
+    is_locked = profile.submission_status in ('pending', 'verified')
+
+    # 1. Handle Upload Foto Profil (Bisa dilakukan kapan saja, meski locked)
+    if request.method == 'POST' and 'upload_foto_profil' in request.POST:
+        if 'foto_profil' in request.FILES:
+            profile.foto_profil = request.FILES['foto_profil']
+            profile.save(update_fields=['foto_profil'])
+            return redirect('account:profile')
+
+    # 2. Handle Clear Dokumen (Hapus file dari storage & database)
+    if request.method == 'POST':
+        if 'clear_ktp' in request.POST and profile.foto_ktp:
+            profile.foto_ktp.delete(save=True)
+            return redirect('account:profile')
+        
+        if 'clear_kk' in request.POST and profile.foto_kk:
+            profile.foto_kk.delete(save=True)
+            return redirect('account:profile')
+
+    # 3. Handle Update Profile Form (Hanya jika belum locked)
+    if request.method == 'POST' and not is_locked:
+        form = ProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            p = form.save(commit=False)
+            p.submission_status = 'pending'
+            p.save()
+            return redirect('account:profile')
+    elif request.method == 'POST' and is_locked:
+        form = ProfileForm(instance=profile)
+    else:
+        form = ProfileForm(instance=profile)
+
+    # Disable semua field di form jika statusnya locked
+    if is_locked:
+        for field in form.fields.values():
+            field.widget.attrs['disabled'] = True
+
+    # 4. Context Preparation
+    nomor_wa_rt = getattr(settings, 'NOMOR_WA_RT', '6282196636162') # Default jika settings kosong
+    pesan_profil = getattr(settings, 'WA_PROFIL_TEXT', 
+                           'Assalamualaikum Pak RT, saya sudah melengkapi profil saya di RondaDigital. Mohon verifikasi data saya. Terima kasih.')
+    
+    wa_url = f"https://wa.me/{nomor_wa_rt}?text={urllib.parse.quote(pesan_profil)}" if profile.submission_status == 'pending' else None
+
+    # Data Readonly untuk ditampilkan di atas form
+    readonly_data = [
+        {'label': 'Nama Lengkap', 'value': profile.nama_lengkap},
+        {'label': 'NIK', 'value': profile.nik},
+        {'label': 'Nomor HP', 'value': profile.no_hp},
+    ]
+
+    return render(request, 'account/profile.html', {
+        'form': form,
+        'profile': profile,
+        'petugas': petugas,
+        'is_locked': is_locked,
+        'wa_url': wa_url,
+        'progress': profile.progress,
+        'step_list': ['Buat Akun', 'Lengkapi Identitas', 'Upload KTP/KK', 'Disetujui RT'],
+        'readonly_data': readonly_data,
+    })
+
+@login_required
+def switch_role_view(request):
+    profile = _get_or_create_profile(request.user)  # aman, tidak crash
+    if request.method == 'POST':
+        current = profile.get_active_role()
+        if current == 'WARGA' and profile.role == 'PETUGAS':
+            profile.active_role = 'PETUGAS'
+        elif current == 'PETUGAS':
+            profile.active_role = 'WARGA'
+        profile.save(update_fields=['active_role'])
+    return redirect(request.POST.get('next', 'account:profile'))

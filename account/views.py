@@ -28,7 +28,7 @@ def _redirect_after_login(user):
     """Tentukan halaman tujuan setelah login berdasarkan role."""
     if user.is_staff or user.is_superuser:
         return redirect('/admin/')
-    profile = user.profile
+    profile = _get_or_create_profile(user)
     if profile.role == 'RT':
         return redirect('dashboard_rt:dashboard')
     elif profile.role == 'PETUGAS':

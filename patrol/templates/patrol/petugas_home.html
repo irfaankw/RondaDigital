@@ -1,7 +1,168 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Shift Ronda - RondaDigital{% endblock title %}
 
 {% block content %}
+<div class="max-w-md md:max-w-6xl mx-auto px-4 py-6 mb-20">
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+        
+        <div class="space-y-4">
+            <div class="bg-gradient-to-br from-amber-950/40 to-[#0b172a] border border-orange-500/40 rounded-2xl p-5 relative overflow-hidden shadow-xl">
+                <div class="absolute -top-10 -right-10 w-24 h-24 bg-orange-500/10 rounded-full blur-xl"></div>
+                
+                <div class="flex justify-between items-start">
+                    <div class="space-y-1">
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+                            <p class="text-[10px] font-bold text-orange-400 uppercase tracking-wider">Mode Petugas Aktif</p>
+                        </div>
+                        <h1 class="text-xl md:text-2xl font-black text-white tracking-wide">Shift Ronda</h1>
+                        <p class="text-sm font-bold text-slate-300">20:00 — 22:00 WIB</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                </div>
 
-<h1>ini halaman petugas patroli</h1>
+                <div class="grid grid-cols-2 gap-3 mt-5">
+                    <div class="bg-[#050c18]/80 border border-slate-800/60 rounded-xl p-3">
+                        <p class="text-[10px] text-slate-400">Sisa Waktu</p>
+                        <p class="text-base font-bold text-white mt-0.5">1j 54m</p>
+                    </div>
+                    <div class="bg-[#050c18]/80 border border-slate-800/60 rounded-xl p-3">
+                        <p class="text-[10px] text-slate-400">Waktu Sekarang</p>
+                        <p class="text-base font-bold text-white mt-0.5">08.05</p>
+                    </div>
+                </div>
+            </div>
 
+            <div class="grid grid-cols-3 gap-2.5">
+                <div class="bg-[#0b172a] border border-slate-800 rounded-xl p-3 text-center shadow-md">
+                    <p class="text-lg md:text-2xl font-black text-red-500">3</p>
+                    <p class="text-[10px] text-slate-400 font-medium mt-0.5">Alert Masuk</p>
+                </div>
+                <div class="bg-[#0b172a] border border-slate-800 rounded-xl p-3 text-center shadow-md">
+                    <p class="text-lg md:text-2xl font-black text-amber-500">1</p>
+                    <p class="text-[10px] text-slate-400 font-medium mt-0.5">Sedang Diproses</p>
+                </div>
+                <div class="bg-[#0b172a] border border-slate-800 rounded-xl p-3 text-center shadow-md">
+                    <p class="text-lg md:text-2xl font-black text-emerald-500">8</p>
+                    <p class="text-[10px] text-slate-400 font-medium mt-0.5">Terselesaikan</p>
+                </div>
+            </div>
+
+            <div class="bg-[#0b172a] border border-slate-800 rounded-2xl p-4 space-y-3.5 shadow-lg">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-2 text-emerald-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200">Checklist Patroli</h3>
+                    </div>
+                    <span class="text-xs font-bold text-cyan-400">3/5</span>
+                </div>
+                <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                    <div class="h-full bg-cyan-500 rounded-full" style="width: 60%"></div>
+                </div>
+                <div class="space-y-2.5 pt-1 text-xs">
+                    <div class="flex items-center space-x-3 text-slate-300">
+                        <span class="w-4 h-4 rounded-full bg-emerald-950 border border-emerald-500/40 flex items-center justify-center text-[10px] text-emerald-400 font-bold">✓</span>
+                        <span class="line-through text-slate-500">Pemeriksaan Pos Ronda</span>
+                    </div>
+                    <div class="flex items-center space-x-3 text-slate-300">
+                        <span class="w-4 h-4 rounded-full bg-emerald-950 border border-emerald-500/40 flex items-center justify-center text-[10px] text-emerald-400 font-bold">✓</span>
+                        <span class="line-through text-slate-500">Patroli Gang Mawar</span>
+                    </div>
+                    <div class="flex items-center space-x-3 text-slate-300">
+                        <span class="w-4 h-4 rounded-full bg-emerald-950 border border-emerald-500/40 flex items-center justify-center text-[10px] text-emerald-400 font-bold">✓</span>
+                        <span class="line-through text-slate-500">Patroli Jalan Utama RT</span>
+                    </div>
+                    <div class="flex items-center space-x-3 text-slate-400">
+                        <span class="w-4 h-4 rounded-full bg-slate-800 border border-slate-700 block"></span>
+                        <span>Cek Parkir Bersama</span>
+                    </div>
+                    <div class="flex items-center space-x-3 text-slate-400">
+                        <span class="w-4 h-4 rounded-full bg-slate-800 border border-slate-700 block"></span>
+                        <span>Laporan Shift ke RT</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <div class="bg-[#0b172a] border border-slate-800 rounded-2xl p-4 space-y-3 shadow-lg">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-2 text-cyan-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        </svg>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200">Area Patroli RT 04</h3>
+                    </div>
+                    <span class="text-[10px] px-2 py-0.5 rounded-md bg-emerald-950/60 border border-emerald-800/40 text-emerald-400 font-semibold">GPS Aktif</span>
+                </div>
+                
+                <div class="w-full h-28 md:h-36 bg-[#050c18] border border-slate-800/80 rounded-xl relative overflow-hidden bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:12px_12px] flex items-center justify-center">
+                    <svg class="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M 30 80 Q 100 30 170 60 T 320 70" fill="none" stroke="#0ea5e9" stroke-width="1.5" stroke-dasharray="4 4" />
+                    </svg>
+                    <div class="absolute bottom-6 left-6 flex items-center space-x-1">
+                        <span class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]"></span>
+                        <span class="text-[9px] text-slate-400">Pos Ronda</span>
+                    </div>
+                    <div class="absolute top-10 right-12 flex items-center space-x-1">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399] animate-ping absolute inline-flex"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399] relative inline-flex"></span>
+                        <span class="text-[9px] text-slate-400">Lokasi Anda</span>
+                    </div>
+                    <span class="text-[9px] text-slate-600 absolute bottom-2 font-mono">RT 04 / RW 02 — Perumahan Griya Asri</span>
+                </div>
+            </div>
+
+            <div class="bg-[#0b172a] border border-slate-800 rounded-2xl p-4 space-y-4 shadow-lg">
+                <div class="flex items-center space-x-2 text-cyan-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200">Log Patroli</h3>
+                </div>
+
+                <div class="relative pl-4 border-l border-slate-800 space-y-4 ml-1.5">
+                    <div class="relative">
+                        <span class="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-cyan-500 ring-4 ring-[#0b172a]"></span>
+                        <div class="text-xs">
+                            <p class="text-slate-400 font-mono"><strong class="text-cyan-400 font-bold">20:05</strong> · Budi S.</p>
+                            <p class="text-slate-300 mt-0.5">Mulai shift. Pos ronda diperiksa dalam kondisi baik.</p>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <span class="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-cyan-500 ring-4 ring-[#0b172a]"></span>
+                        <div class="text-xs">
+                            <p class="text-slate-400 font-mono"><strong class="text-cyan-400 font-bold">20:30</strong> · Budi S.</p>
+                            <p class="text-slate-300 mt-0.5">Patroli Gang Mawar — aman, tidak ada aktivitas mencurigakan.</p>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <span class="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-cyan-500 ring-4 ring-[#0b172a]"></span>
+                        <div class="text-xs">
+                            <p class="text-slate-400 font-mono"><strong class="text-cyan-400 font-bold">21:00</strong> · Ahmad F.</p>
+                            <p class="text-slate-300 mt-0.5">Cek CCTV Pos Ronda — semua kamera online.</p>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <span class="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-cyan-500 ring-4 ring-[#0b172a]"></span>
+                        <div class="text-xs">
+                            <p class="text-slate-400 font-mono"><strong class="text-cyan-400 font-bold">21:15</strong> · Budi S.</p>
+                            <p class="text-slate-300 mt-0.5">Warga melaporkan suara berisik di Blok B. Sudah dikonfirmasi bukan insiden.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
 {% endblock content %}

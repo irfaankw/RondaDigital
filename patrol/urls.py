@@ -5,7 +5,7 @@ app_name = 'patrol'
 
 urlpatterns = [
     # Menu 1: Dashboard Petugas
-    path('dashboard/', views.petugas_dashboard, name='petugas_dashboard'),
+    path('dashboard/', views.petugas_dashboard, name='petugas_home'),
     
     # Menu 2: Halaman Pantau CCTV
     path('cctv/', views.petugas_cctv, name='petugas_cctv'),

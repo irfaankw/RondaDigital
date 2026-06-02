@@ -1,5 +1,7 @@
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 
+@login_required
 def petugas_dashboard(request):
     # Mock data untuk ringkasan di halaman utama petugas
     context = {
@@ -9,6 +11,7 @@ def petugas_dashboard(request):
     }
     return render(request, 'patrol/petugas_home.html', context)
 
+@login_required
 def petugas_cctv(request):
     # Mock data daftar url/lokasi CCTV lingkungan RT
     context = {
@@ -21,6 +24,7 @@ def petugas_cctv(request):
     }
     return render(request, 'patrol/petugas_cctv.html', context)
 
+@login_required
 def petugas_alert(request):
     # Mock data laporan darurat (seperti contoh yang kamu bagikan sebelumnya)
     context = {
@@ -54,6 +58,7 @@ def petugas_alert(request):
     }
     return render(request, 'patrol/alert.html', context)
 
+@login_required
 def petugas_shift(request):
     # Mock data lengkap untuk absensi dan list jadwal shift malam ini
     shift_aktif_mock = {

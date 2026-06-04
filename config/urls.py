@@ -8,7 +8,7 @@ urlpatterns = [
     path('',            include('account.urls',      namespace='account')),
     path('panel-rt/',   include('dashboard_rt.urls', namespace='dashboard_rt')),
     path('patroli/',    include('patrol.urls',        namespace='patrol')),
-    # path('emergency/', include('emergency.urls',   namespace='emergency')),
+    path('emergency/', include('emergency.urls',   namespace='emergency')),
 ]
 
 if settings.DEBUG:

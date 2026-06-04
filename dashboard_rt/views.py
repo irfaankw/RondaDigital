@@ -27,12 +27,11 @@ def jadwal_ronda(request):
     semua_jadwal = (
         JadwalRonda.objects
         .filter(dibuat_oleh=request.user)
-        .prefetch_related('item_patroli', 'petugas__profile')
+        .prefetch_related('item_patroli')
+        .select_related('petugas__profile')
         .order_by('-tanggal', 'jam_mulai')
     )
 
-    # Ambil semua warga yang sudah diverifikasi oleh RT ini
-    # (bukan filter berdasarkan role atau RT — cukup is_verified=True)
     warga_terverifikasi = (
         User.objects
         .filter(profile__is_verified=True)
@@ -40,23 +39,31 @@ def jadwal_ronda(request):
         .order_by('profile__nama_lengkap')
     )
 
-    # Bangun data untuk template
-    jadwal_data = []
-    for j in semua_jadwal:
-        petugas_list_j = j.petugas.select_related('profile').all()
-        petugas_info = []
-        for p in petugas_list_j:
-            profile  = getattr(p, 'profile', None)
-            nama     = profile.nama_lengkap if profile else p.username
-            inisial  = ''.join([k[0].upper() for k in nama.split()[:2]])
-            petugas_info.append({'nama': nama, 'inisial': inisial})
+    # Group jadwal berdasarkan tanggal+jam_mulai supaya terlihat seperti 1 sesi
+    from itertools import groupby
+    from collections import defaultdict
 
+    jadwal_data = []
+    grouped = defaultdict(list)
+    for j in semua_jadwal:
+        key = (j.tanggal, j.jam_mulai, j.jam_selesai)
+        grouped[key].append(j)
+
+    for (tanggal, jam_mulai, jam_selesai), jadwal_list in grouped.items():
+        petugas_info = []
+        for j in jadwal_list:
+            profile = getattr(j.petugas, 'profile', None)
+            nama    = profile.nama_lengkap if profile else j.petugas.username
+            inisial = ''.join([k[0].upper() for k in nama.split()[:2]])
+            petugas_info.append({'nama': nama, 'inisial': inisial, 'id': j.petugas.pk})
+
+        # Ambil items dari jadwal pertama (semua jadwal dalam grup sama)
+        j0 = jadwal_list[0]
         jadwal_data.append({
-            'obj'         : j,
+            'obj'         : j0,
+            'ids'         : [j.pk for j in jadwal_list],
             'petugas_info': petugas_info,
-            'status'      : j.status_jadwal,
-            'label_waktu' : j.label_waktu,
-            'items'       : list(j.item_patroli.all()),
+            'items'       : list(j0.item_patroli.all()),
         })
 
     context = {
@@ -66,11 +73,12 @@ def jadwal_ronda(request):
     }
     return render(request, 'dashboard_rt/jadwal_ronda.html', context)
 
+
 @login_required
 @rt_required
 @require_POST
 def jadwal_buat(request):
-    """AJAX — Buat jadwal ronda baru beserta item patrolinya."""
+    """AJAX — Buat jadwal ronda baru. 1 row per petugas, tanggal+jam sama."""
     try:
         data = json.loads(request.body)
 
@@ -78,8 +86,6 @@ def jadwal_buat(request):
         tanggal     = data.get('tanggal')
         jam_mulai   = data.get('jam_mulai')
         jam_selesai = data.get('jam_selesai')
-        blok_area   = data.get('blok_area', '').strip()
-        catatan_rt  = data.get('catatan_rt', '').strip()
         items       = data.get('items', [])
 
         form_data = {
@@ -87,8 +93,8 @@ def jadwal_buat(request):
             'tanggal'    : tanggal,
             'jam_mulai'  : jam_mulai,
             'jam_selesai': jam_selesai,
-            'blok_area'  : blok_area,
-            'catatan_rt' : catatan_rt,
+            'blok_area'  : '',
+            'catatan_rt' : '',
             'items'      : '',
         }
         form = JadwalRondaForm(form_data)
@@ -103,17 +109,18 @@ def jadwal_buat(request):
         petugas_users = form.cleaned_data['petugas_ids']
 
         with transaction.atomic():
-            jadwal = JadwalRonda.objects.create(
-                tanggal     = form.cleaned_data['tanggal'],
-                jam_mulai   = form.cleaned_data['jam_mulai'],
-                jam_selesai = form.cleaned_data['jam_selesai'],
-                blok_area   = blok_area,
-                catatan_rt  = catatan_rt,
-                dibuat_oleh = request.user,
-            )
-            jadwal.petugas.set(petugas_users)
+            jadwal_list = []
+            for u in petugas_users:
+                jadwal = JadwalRonda.objects.create(
+                    petugas     = u,
+                    tanggal     = form.cleaned_data['tanggal'],
+                    jam_mulai   = form.cleaned_data['jam_mulai'],
+                    jam_selesai = form.cleaned_data['jam_selesai'],
+                    dibuat_oleh = request.user,
+                )
+                jadwal_list.append(jadwal)
 
-            # ✅ Bulk update — 1 query, bukan N query
+            # Bulk update role petugas
             profiles_to_update = []
             for u in petugas_users:
                 profile = getattr(u, 'profile', None)
@@ -121,28 +128,26 @@ def jadwal_buat(request):
                     profile.role        = 'PETUGAS'
                     profile.active_role = 'PETUGAS'
                     profiles_to_update.append(profile)
-
             if profiles_to_update:
-                UserProfile.objects.bulk_update(
-                    profiles_to_update, ['role', 'active_role']
-                )
+                UserProfile.objects.bulk_update(profiles_to_update, ['role', 'active_role'])
 
-            # ✅ Bulk create item patroli — 1 query, bukan N query
-            item_list = [
-                ItemPatroli(jadwal=jadwal, urutan=i + 1, deskripsi=deskripsi)
-                for i, deskripsi in enumerate(form.get_items())
+            # Item patroli hanya di jadwal pertama (representatif grup)
+            item_objs = [
+                ItemPatroli(jadwal=jadwal_list[0], urutan=i+1, deskripsi=d)
+                for i, d in enumerate(form.get_items())
             ]
-            if item_list:
-                ItemPatroli.objects.bulk_create(item_list)
+            if item_objs:
+                ItemPatroli.objects.bulk_create(item_objs)
 
         return JsonResponse({
             'ok'   : True,
             'pesan': 'Jadwal berhasil dibuat.',
-            'id'   : jadwal.pk,
+            'id'   : jadwal_list[0].pk,
         })
 
     except Exception as e:
         return JsonResponse({'ok': False, 'pesan': str(e)})
+
 
 @login_required
 @rt_required
@@ -151,12 +156,20 @@ def jadwal_detail(request, pk):
     jadwal = get_object_or_404(JadwalRonda, pk=pk, dibuat_oleh=request.user)
     items  = list(jadwal.item_patroli.values('id', 'urutan', 'deskripsi'))
 
+    # Cari semua jadwal dalam grup yang sama (tanggal+jam sama)
+    jadwal_grup = JadwalRonda.objects.filter(
+        dibuat_oleh = request.user,
+        tanggal     = jadwal.tanggal,
+        jam_mulai   = jadwal.jam_mulai,
+        jam_selesai = jadwal.jam_selesai,
+    ).select_related('petugas__profile')
+
     petugas_data = []
-    for p in jadwal.petugas.select_related('profile').all():
-        profile = getattr(p, 'profile', None)
+    for j in jadwal_grup:
+        profile = getattr(j.petugas, 'profile', None)
         petugas_data.append({
-            'id'  : p.pk,
-            'nama': profile.nama_lengkap if profile else p.username,
+            'id'  : j.petugas.pk,
+            'nama': profile.nama_lengkap if profile else j.petugas.username,
         })
 
     return JsonResponse({
@@ -166,10 +179,9 @@ def jadwal_detail(request, pk):
         'tanggal'    : str(jadwal.tanggal),
         'jam_mulai'  : jadwal.jam_mulai.strftime('%H:%M'),
         'jam_selesai': jadwal.jam_selesai.strftime('%H:%M'),
-        'blok_area'  : jadwal.blok_area,
-        'catatan_rt' : jadwal.catatan_rt,
+        'blok_area'  : '',
+        'catatan_rt' : '',
         'items'      : items,
-        'status'     : jadwal.status_jadwal,
     })
 
 
@@ -177,7 +189,7 @@ def jadwal_detail(request, pk):
 @rt_required
 @require_POST
 def jadwal_edit(request, pk):
-    """AJAX POST — Edit jadwal yang sudah ada."""
+    """AJAX POST — Edit jadwal yang sudah ada (hapus grup lama, buat baru)."""
     jadwal = get_object_or_404(JadwalRonda, pk=pk, dibuat_oleh=request.user)
     try:
         data = json.loads(request.body)
@@ -186,8 +198,6 @@ def jadwal_edit(request, pk):
         tanggal     = data.get('tanggal')
         jam_mulai   = data.get('jam_mulai')
         jam_selesai = data.get('jam_selesai')
-        blok_area   = data.get('blok_area', '').strip()
-        catatan_rt  = data.get('catatan_rt', '').strip()
         items       = data.get('items', [])
 
         form_data = {
@@ -195,8 +205,8 @@ def jadwal_edit(request, pk):
             'tanggal'    : tanggal,
             'jam_mulai'  : jam_mulai,
             'jam_selesai': jam_selesai,
-            'blok_area'  : blok_area,
-            'catatan_rt' : catatan_rt,
+            'blok_area'  : '',
+            'catatan_rt' : '',
             'items'      : '',
         }
         form = JadwalRondaForm(form_data)
@@ -211,16 +221,27 @@ def jadwal_edit(request, pk):
         petugas_users = form.cleaned_data['petugas_ids']
 
         with transaction.atomic():
-            jadwal.tanggal     = form.cleaned_data['tanggal']
-            jadwal.jam_mulai   = form.cleaned_data['jam_mulai']
-            jadwal.jam_selesai = form.cleaned_data['jam_selesai']
-            jadwal.blok_area   = blok_area
-            jadwal.catatan_rt  = catatan_rt
-            jadwal.save()
+            # Hapus semua jadwal dalam grup yang sama
+            JadwalRonda.objects.filter(
+                dibuat_oleh = request.user,
+                tanggal     = jadwal.tanggal,
+                jam_mulai   = jadwal.jam_mulai,
+                jam_selesai = jadwal.jam_selesai,
+            ).delete()
 
-            jadwal.petugas.set(petugas_users)
+            # Buat ulang 1 row per petugas
+            jadwal_list = []
+            for u in petugas_users:
+                j = JadwalRonda.objects.create(
+                    petugas     = u,
+                    tanggal     = form.cleaned_data['tanggal'],
+                    jam_mulai   = form.cleaned_data['jam_mulai'],
+                    jam_selesai = form.cleaned_data['jam_selesai'],
+                    dibuat_oleh = request.user,
+                )
+                jadwal_list.append(j)
 
-            # ✅ Bulk update — 1 query, bukan N query
+            # Bulk update role
             profiles_to_update = []
             for u in petugas_users:
                 profile = getattr(u, 'profile', None)
@@ -228,37 +249,38 @@ def jadwal_edit(request, pk):
                     profile.role        = 'PETUGAS'
                     profile.active_role = 'PETUGAS'
                     profiles_to_update.append(profile)
-
             if profiles_to_update:
-                UserProfile.objects.bulk_update(
-                    profiles_to_update, ['role', 'active_role']
-                )
+                UserProfile.objects.bulk_update(profiles_to_update, ['role', 'active_role'])
 
-            # ✅ Bulk create item patroli — 1 query, bukan N query
-            jadwal.item_patroli.all().delete()
-            item_list = [
-                ItemPatroli(jadwal=jadwal, urutan=i + 1, deskripsi=deskripsi)
-                for i, deskripsi in enumerate(form.get_items())
+            # Item patroli di jadwal pertama
+            item_objs = [
+                ItemPatroli(jadwal=jadwal_list[0], urutan=i+1, deskripsi=d)
+                for i, d in enumerate(form.get_items())
             ]
-            if item_list:
-                ItemPatroli.objects.bulk_create(item_list)
+            if item_objs:
+                ItemPatroli.objects.bulk_create(item_objs)
 
         return JsonResponse({'ok': True, 'pesan': 'Jadwal berhasil diperbarui.'})
 
     except Exception as e:
         return JsonResponse({'ok': False, 'pesan': str(e)})
 
+
 @login_required
 @rt_required
 @require_POST
 def jadwal_hapus(request, pk):
-    """AJAX POST — Hapus jadwal."""
+    """AJAX POST — Hapus seluruh grup jadwal (tanggal+jam sama)."""
     jadwal = get_object_or_404(JadwalRonda, pk=pk, dibuat_oleh=request.user)
-    jadwal.delete()
+    # Hapus semua dalam grup
+    JadwalRonda.objects.filter(
+        dibuat_oleh = request.user,
+        tanggal     = jadwal.tanggal,
+        jam_mulai   = jadwal.jam_mulai,
+        jam_selesai = jadwal.jam_selesai,
+    ).delete()
     return JsonResponse({'ok': True, 'pesan': 'Jadwal berhasil dihapus.'})
 
-from django.views.decorators.http import require_POST  # sudah ada
-from account.models import UserProfile  # sudah ada
 
 @login_required
 @rt_required
@@ -271,25 +293,26 @@ def verifikasi_warga(request):
         .order_by('-created_at')
     )
 
-    # Hitung badge notif (menunggu)
     jumlah_menunggu = semua_profil.filter(submission_status='pending').count()
+    existing_niks   = list(NIKWhitelist.objects.values_list('nik', flat=True))
 
     context = {
-        'semua_profil'   : semua_profil,
-        'jumlah_menunggu': jumlah_menunggu,
+        'semua_profil'      : semua_profil,
+        'jumlah_menunggu'   : jumlah_menunggu,
+        'existing_niks_json': _json.dumps(existing_niks),
     }
     return render(request, 'dashboard_rt/verifikasi_warga.html', context)
+
 
 @login_required
 @rt_required
 @require_POST
 def verifikasi_aksi(request, pk):
     """AJAX — Setujui atau tolak verifikasi warga."""
-    import json
     profile = get_object_or_404(UserProfile, pk=pk)
     try:
-        data   = json.loads(request.body)
-        aksi   = data.get('aksi')  # 'setujui' | 'tolak' | 'tinjau_ulang'
+        data = json.loads(request.body)
+        aksi = data.get('aksi')
 
         if aksi == 'setujui':
             profile.submission_status = 'verified'
@@ -308,67 +331,25 @@ def verifikasi_aksi(request, pk):
 
     except Exception as e:
         return JsonResponse({'ok': False, 'pesan': str(e)})
-    
-@login_required
-@rt_required
-def verifikasi_warga(request):
-    """Halaman daftar warga menunggu/sudah verifikasi."""
-    semua_profil = (
-        UserProfile.objects
-        .exclude(submission_status='draft')
-        .select_related('user')
-        .order_by('-created_at')
-    )
 
-    jumlah_menunggu = semua_profil.filter(submission_status='pending').count()
-
-    # Kirim daftar NIK yang sudah ada di whitelist → untuk cek duplikat di JS
-    existing_niks = list(NIKWhitelist.objects.values_list('nik', flat=True))
-
-    context = {
-        'semua_profil'    : semua_profil,
-        'jumlah_menunggu' : jumlah_menunggu,
-        'existing_niks_json': _json.dumps(existing_niks),
-    }
-    return render(request, 'dashboard_rt/verifikasi_warga.html', context)
-
-
-############## Upload CSV NIK ##############
 
 @login_required
 @rt_required
 def upload_nik_csv(request):
-    """
-    GET  → Halaman form upload CSV.
-    POST → Proses CSV, bulk-insert NIK ke NIKWhitelist.
-
-    Format CSV yang diharapkan (header baris pertama):
-        nik, nama_lengkap, tanggal_lahir, ...kolom_lain_diabaikan...
-
-    Kolom wajib  : nik
-    Kolom opsional: nama_lengkap (kalau ada, disimpan ke nama_sesuai)
-    Kolom lain   : diabaikan
-    """
     if request.method == 'GET':
         return render(request, 'dashboard_rt/upload_nik_csv.html')
 
-    # ── POST ──────────────────────────────────────────────────────────────────
     csv_file = request.FILES.get('csv_file')
-
     if not csv_file:
         return JsonResponse({'ok': False, 'pesan': 'File CSV tidak ditemukan.'})
-
     if not csv_file.name.endswith('.csv'):
         return JsonResponse({'ok': False, 'pesan': 'File harus berekstensi .csv'})
-
-    if csv_file.size > 5 * 1024 * 1024:  # maks 5 MB
+    if csv_file.size > 5 * 1024 * 1024:
         return JsonResponse({'ok': False, 'pesan': 'Ukuran file maksimal 5 MB.'})
 
     try:
-        raw   = csv_file.read().decode('utf-8-sig')   # utf-8-sig → toleran BOM Excel
+        raw    = csv_file.read().decode('utf-8-sig')
         reader = csv.DictReader(io.StringIO(raw))
-
-        # Normalisasi nama header → lowercase + strip spasi
         reader.fieldnames = [h.strip().lower() for h in (reader.fieldnames or [])]
 
         if 'nik' not in reader.fieldnames:
@@ -377,7 +358,6 @@ def upload_nik_csv(request):
                 'pesan': 'Kolom "nik" tidak ditemukan. Pastikan baris pertama CSV berisi header.'
             })
 
-        # ── Kumpulkan data valid ──────────────────────────────────────────────
         existing_niks = set(NIKWhitelist.objects.values_list('nik', flat=True))
         to_create     = []
         duplikat      = []
@@ -390,22 +370,16 @@ def upload_nik_csv(request):
             if not nik:
                 baris_kosong += 1
                 continue
-
             if not nik.isdigit() or len(nik) != 16:
-                # Lewati NIK tidak valid (bukan 16 digit angka)
                 baris_kosong += 1
                 continue
-
             if nik in existing_niks:
                 duplikat.append(nik)
                 continue
 
-            existing_niks.add(nik)          # cegah duplikat dalam file yang sama
-            to_create.append(
-                NIKWhitelist(nik=nik, nama_sesuai=nama)
-            )
+            existing_niks.add(nik)
+            to_create.append(NIKWhitelist(nik=nik, nama_sesuai=nama))
 
-        # ── Bulk insert ───────────────────────────────────────────────────────
         with transaction.atomic():
             NIKWhitelist.objects.bulk_create(to_create)
 
@@ -416,17 +390,14 @@ def upload_nik_csv(request):
             pesan += f' {baris_kosong} baris dilewati (kosong/format salah).'
 
         return JsonResponse({
-            'ok'       : True,
-            'pesan'    : pesan,
-            'ditambah' : len(to_create),
-            'duplikat' : len(duplikat),
-            'dilewati' : baris_kosong,
+            'ok'      : True,
+            'pesan'   : pesan,
+            'ditambah': len(to_create),
+            'duplikat': len(duplikat),
+            'dilewati': baris_kosong,
         })
 
     except UnicodeDecodeError:
-        return JsonResponse({
-            'ok'   : False,
-            'pesan': 'Gagal membaca file. Pastikan CSV disimpan dalam format UTF-8.'
-        })
+        return JsonResponse({'ok': False, 'pesan': 'Gagal membaca file. Pastikan CSV dalam format UTF-8.'})
     except Exception as e:
         return JsonResponse({'ok': False, 'pesan': f'Terjadi kesalahan: {str(e)}'})

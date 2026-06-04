@@ -1,43 +1,32 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
-from datetime import timedelta, datetime, time as dtime
+from datetime import timedelta, datetime
+
 
 class JadwalRonda(models.Model):
-
-    # ForeignKey diganti ManyToManyField → support 5–7 petugas per jadwal
-    petugas = models.ManyToManyField(
-        User,
-        related_name='jadwal_ronda',
-        blank=True,
-    )
+    petugas     = models.ForeignKey(User, on_delete=models.CASCADE, related_name='jadwal_ronda')
     tanggal     = models.DateField()
     jam_mulai   = models.TimeField()
     jam_selesai = models.TimeField()
-    blok_area   = models.CharField(
-        max_length=100, blank=True,
-        help_text='Contoh: Blok A-D, Area Timur, dll'
-    )
-    catatan_rt  = models.TextField(
-        blank=True,
-        help_text='Catatan dari Ketua RT untuk petugas'
-    )
+    nama_shift  = models.CharField(max_length=100, blank=True)
     dibuat_oleh = models.ForeignKey(
         User, on_delete=models.SET_NULL,
         null=True, blank=True,
         related_name='jadwal_dibuat'
     )
-    created_at  = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name        = 'Jadwal Ronda'
         verbose_name_plural = 'Jadwal Ronda'
         ordering            = ['tanggal', 'jam_mulai']
-        # unique_together dihapus karena petugas kini ManyToMany
+        unique_together     = ['petugas', 'tanggal', 'jam_mulai']
 
     def __str__(self):
-        jumlah = self.petugas.count()
-        return f"{jumlah} petugas | {self.tanggal} {self.jam_mulai}"
+        profile = getattr(self.petugas, 'profile', None)
+        nama    = profile.nama_lengkap if profile else self.petugas.username
+        return f"{nama} | {self.tanggal} {self.jam_mulai}"
 
     def get_datetime_mulai(self):
         dt = datetime.combine(self.tanggal, self.jam_mulai)
@@ -64,21 +53,6 @@ class JadwalRonda(models.Model):
         now = timezone.now()
         return self.get_datetime_mulai() <= now <= self.get_datetime_selesai()
 
-    @property
-    def status_jadwal(self):
-        """Return: 'aktif', 'akan_datang', atau 'selesai'"""
-        now = timezone.now()
-        if now < self.get_datetime_mulai():
-            return 'akan_datang'
-        elif now > self.get_datetime_selesai():
-            return 'selesai'
-        else:
-            return 'aktif'
-
-    @property
-    def label_waktu(self):
-        """Contoh: 21:00–05:00"""
-        return f"{self.jam_mulai.strftime('%H:%M')}–{self.jam_selesai.strftime('%H:%M')}"
 
 class AbsensiShift(models.Model):
     STATUS_ABSEN = [
@@ -87,10 +61,7 @@ class AbsensiShift(models.Model):
         ('tidak_hadir', 'Tidak Hadir'),
     ]
 
-    jadwal         = models.OneToOneField(
-        JadwalRonda, on_delete=models.CASCADE,
-        related_name='absensi'
-    )
+    jadwal         = models.OneToOneField(JadwalRonda, on_delete=models.CASCADE, related_name='absensi')
     waktu_absen    = models.DateTimeField(auto_now_add=True)
     foto_absen     = models.ImageField(upload_to='absensi/foto/', null=True, blank=True)
     latitude       = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)

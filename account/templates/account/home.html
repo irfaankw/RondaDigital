@@ -38,8 +38,8 @@
     <div class="bg-[#0d1b2e] border border-[#1e3a5f] rounded-2xl px-5 py-4 flex items-center justify-between shadow-lg">
       <div>
         <p class="text-[11px] font-semibold uppercase tracking-widest text-slate-400">Status CCTV</p>
-        <p class="text-2xl font-extrabold text-white mt-1 leading-none">3 / 10</p>
-        <p class="text-xs text-red-400 mt-1.5">3 Mati</p>
+        <p class="text-2xl font-extrabold text-white mt-1 leading-none">10 / 10</p>
+        <p class="text-xs text-red-400 mt-1.5">CCTV Mati</p>
       </div>
       <div class="bg-red-500/10 text-red-400 rounded-xl p-3 flex-shrink-0">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -201,12 +201,13 @@
         <span class="w-2.5 h-2.5 rounded-full bg-green-400 shadow-[0_0_6px_#4ade80]"></span>
         <span class="text-sm font-bold text-white">Live Monitoring CCTV</span>
       </div>
-      <button onclick="openModal('modal-cctv-all')" class="text-xs font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition">
-        Lihat Semua
+      <a href="{% url 'account:cctv_warga' %}" 
+        class="text-xs font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition no-underline">
+          Lihat Semua
         <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-        </svg>
-      </button>
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+  </a>
     </div>
 
     {# Mobile: 2 kolom #}

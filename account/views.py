@@ -280,6 +280,17 @@ def profile_view(request):
         'shift_info'   : shift_info,
     })
 
+@login_required
+def cctv_warga(request):
+    """
+    Menampilkan halaman CCTV untuk warga.
+    """
+    profile = _get_or_create_profile(request.user)
+    
+    
+    return render(request, 'account/cctv_warga.html', {
+        'url_name': 'cctv_warga' 
+    })
 
 @login_required
 def switch_role_view(request):

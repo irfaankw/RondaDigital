@@ -1,94 +1,202 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Pemantauan Rumah - RondaDigital{% endblock title %}
+{% block title %}Dashboard Utama - RondaDigital{% endblock title %}
 
-{% block main_class %}flex justify-center items-start px-4 py-6{% endblock main_class %}
+{% block main_class %}min-h-screen bg-[#070d19] text-slate-100 p-4 sm:p-6 overflow-x-hidden max-w-full w-screen flex flex-col{% endblock main_class %}
 
 {% block content %}
-<div class="w-full max-w-md space-y-5 pb-12">
+<style>
+    html, body {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+        width: 100% !important;
+    }
+</style>
 
-    <div class="px-1">
-        <h2 class="text-xl font-bold text-slate-100 tracking-tight">Tugas Patroli Malam</h2>
-        <p class="text-xs text-slate-400 mt-1">Daftar rumah warga yang memerlukan pengawasan khusus.</p>
+<div class="max-w-7xl mx-auto space-y-6 w-full overflow-x-hidden px-1">
+
+    <div class="bg-[#0b1426]/60 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-slate-800/80 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 w-full box-border">
+        <div class="min-w-0">
+            <div class="flex items-center gap-2 mb-1.5">
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                <span class="text-xs font-bold text-amber-500 uppercase tracking-widest font-mono">Mode Petugas Aktif</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight truncate">Shift Ronda Malam</h2>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1 font-mono">Jadwal: 20:00 — 05:00 WIB</p>
+        </div>
+
+        <div class="grid grid-cols-2 sm:flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+            <div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5 sm:px-5 sm:py-3 text-center">
+                <p class="text-[9px] sm:text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Sisa Waktu</p>
+                <p class="text-lg sm:text-2xl font-black text-cyan-400 font-mono">5j <span class="text-sm sm:text-xl font-normal text-slate-300">24m</span></p>
+            </div>
+            <div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5 sm:px-5 sm:py-3 text-center relative overflow-hidden">
+                <p class="text-[9px] sm:text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Waktu Sekarang</p>
+                <p class="text-lg sm:text-2xl font-black text-slate-100 font-mono">02:00</p>
+            </div>
+        </div>
     </div>
 
-    <div class="bg-[#0b1426]/60 backdrop-blur-md rounded-2xl p-5 border border-slate-800/80 shadow-md">
-        
-        <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2">
-                <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 12l2 2 4-4m2 5l2 2 4-4M5 5h.01M4 12h.01M4 19h.01M13 5h8M13 12h8M13 19h8"></path>
-                </svg>
-                <h3 class="text-xs font-bold text-slate-200 tracking-wide">Checklist Pemantauan Rumah</h3>
-            </div>
-            <span class="text-xs font-bold text-cyan-400 font-mono">1/2 Selesai</span>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5 w-full">
+        <div class="bg-[#0b1426]/40 border border-red-500/10 rounded-xl p-4 transition-all hover:border-red-500/30 flex items-center justify-between sm:flex-col sm:justify-center sm:text-center gap-2 w-full box-border">
+            <p class="text-xs font-bold text-slate-400 tracking-wide">Alert Masuk</p>
+            <p class="text-2xl sm:text-3xl font-black text-red-400 font-mono">3</p>
         </div>
+        <div class="bg-[#0b1426]/40 border border-amber-500/10 rounded-xl p-4 transition-all hover:border-amber-500/30 flex items-center justify-between sm:flex-col sm:justify-center sm:text-center gap-2 w-full box-border">
+            <p class="text-xs font-bold text-slate-400 tracking-wide">Sedang Diproses</p>
+            <p class="text-2xl sm:text-3xl font-black text-amber-400 font-mono">1</p>
+        </div>
+        <div class="bg-[#0b1426]/40 border border-cyan-500/15 rounded-xl p-4 transition-all hover:border-cyan-500/40 flex items-center justify-between sm:flex-col sm:justify-center sm:text-center gap-2 w-full box-border">
+            <p class="text-xs font-bold text-slate-400 tracking-wide">Terselesaikan</p>
+            <p class="text-2xl sm:text-3xl font-black text-cyan-400 font-mono">12</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start w-full">
         
-        <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden mb-6 border border-slate-800/50">
-            <div class="bg-gradient-to-r from-cyan-500 to-teal-400 h-full rounded-full" style="width: 50%"></div>
+        <div class="lg:col-span-2 bg-[#0b1426]/60 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-slate-800/80 shadow-md h-fit w-full box-border">
+            <div class="flex items-center justify-between mb-4 gap-2">
+                <div class="flex items-center gap-2 min-w-0">
+                    <svg class="w-5 h-5 text-cyan-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                    </svg>
+                    <h3 class="text-sm sm:text-base font-bold text-slate-100 tracking-wide truncate">Checklist Patroli</h3>
+                </div>
+                <span class="text-[10px] sm:text-xs font-bold text-slate-400 font-mono bg-slate-950 px-2.5 py-1 rounded-full border border-slate-800/60 flex-shrink-0">Progress: 3/5</span>
+            </div>
+
+            <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden mb-5 border border-slate-900">
+                <div class="bg-cyan-400 h-full rounded-full" style="width: 60%"></div>
+            </div>
+
+            <div class="divide-y divide-slate-800/50 w-full">
+                <div class="py-3.5 flex items-center justify-between gap-2 w-full">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <span class="text-cyan-400 bg-cyan-500/10 p-1 rounded-full flex-shrink-0 flex items-center justify-center w-5 h-5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                        </span>
+                        <span class="text-xs sm:text-sm text-slate-300 font-medium truncate">Pemeriksaan Pos Ronda Utama</span>
+                    </div>
+                    <span class="text-xs text-slate-500 font-mono flex-shrink-0">20:15</span>
+                </div>
+
+                <div class="py-3.5 flex items-center justify-between gap-2 w-full">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <span class="text-cyan-400 bg-cyan-500/10 p-1 rounded-full flex-shrink-0 flex items-center justify-center w-5 h-5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                        </span>
+                        <span class="text-xs sm:text-sm text-slate-300 font-medium truncate">Patroli Blok Mawar & Melati</span>
+                    </div>
+                    <span class="text-xs text-slate-500 font-mono flex-shrink-0">21:30</span>
+                </div>
+
+                <div class="py-3.5 flex items-center justify-between gap-2 w-full">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <span class="text-cyan-400 bg-cyan-500/10 p-1 rounded-full flex-shrink-0 flex items-center justify-center w-5 h-5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                        </span>
+                        <span class="text-xs sm:text-sm text-slate-300 font-medium truncate">Pengecekan CCTV Area Belakang</span>
+                    </div>
+                    <span class="text-xs text-slate-500 font-mono flex-shrink-0">22:45</span>
+                </div>
+
+                <div class="py-3.5 flex items-center justify-between gap-2 w-full">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <span class="w-5 h-5 rounded-full border-2 border-slate-700 flex-shrink-0 block"></span>
+                        <span class="text-xs sm:text-sm text-slate-300 font-medium truncate">Patroli Keliling Area Parkir Bersama</span>
+                    </div>
+                    <button class="text-[10px] font-bold bg-transparent hover:bg-slate-800 border border-cyan-400/80 text-cyan-400 px-2.5 py-1 rounded transition-all font-mono tracking-wider flex-shrink-0">Mulai</button>
+                </div>
+
+                <div class="py-3.5 flex items-center justify-between gap-2 w-full opacity-50">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="w-5 h-5 rounded-full border-2 border-slate-700 flex-shrink-0 block"></span>
+                        <span class="text-xs sm:text-sm text-slate-400 font-medium truncate">Laporan Akhir Shift ke Ketua RT</span>
+                    </div>
+                    <span class="text-xs text-slate-600 font-mono flex-shrink-0">— : —</span>
+                </div>
+            </div>
         </div>
 
-        <div class="space-y-4">
+        <div class="space-y-6 w-full">
             
-            <div class="p-4 rounded-xl bg-slate-950/40 border border-amber-500/20 shadow-inner">
-                
-                <div class="flex items-center justify-between gap-3 mb-3">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-mono font-bold text-xs">
-                            11
+            <div class="bg-[#0b1426]/60 backdrop-blur-md rounded-2xl p-5 border border-slate-800/80 shadow-md flex flex-col justify-between min-h-[260px] w-full box-border">
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <h3 class="text-sm font-bold text-slate-200">Log Patroli</h3>
+                    </div>
+
+                    <div class="relative border-l-2 border-slate-800/80 ml-2 pl-4 space-y-4 text-xs">
+                        <div class="relative">
+                            <span class="absolute -left-[21px] top-0.5 w-2 h-2 rounded-full bg-cyan-400 ring-4 ring-[#070d19]"></span>
+                            <div class="flex items-center justify-between text-slate-400 mb-0.5">
+                                <span class="font-bold font-mono text-slate-300">23:15</span>
+                                <span class="text-[10px]">Budi Santoso</span>
+                            </div>
+                            <p class="text-slate-400 leading-relaxed">Pemeriksaan area Gerbang Timur. Semua kunci dipastikan terkunci rapat.</p>
                         </div>
-                        <h4 class="text-xs font-bold text-slate-200">Rumah No. 11 (Bpk. Alul)</h4>
-                    </div>
-                    
-                    <div class="flex items-center gap-1.5 px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                        Menunggu
                     </div>
                 </div>
-
-                <div class="text-[11px] text-slate-400 leading-relaxed font-normal bg-black/20 p-2.5 rounded border border-slate-900/60">
-                    <span class="text-amber-400 font-bold">Pesan:</span> Ditinggal mudik, tolong pantau pintu belakang.
-                </div>
-
-                <div class="mt-3.5 pt-3 border-t border-slate-900/60">
-                    <button onclick="alert('Status Rumah No. 11 berhasil diubah menjadi Selesai Dipantau!')" class="w-full text-[11px] font-bold text-slate-950 bg-cyan-400 hover:bg-cyan-300 px-4 py-2 rounded-lg transition-all active:scale-[0.98] shadow-md shadow-cyan-400/10 flex items-center justify-center gap-1">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        Tandai Sdh Dipantau
-                    </button>
+                <div class="mt-4 pt-3 border-t border-slate-800/60 text-center">
+                    <button class="text-xs font-bold text-slate-400 hover:text-slate-200 tracking-wider uppercase font-mono transition-colors w-full">Lihat Semua Log</button>
                 </div>
             </div>
 
-            <div class="p-4 rounded-xl bg-slate-950/20 border border-slate-800/40 opacity-70">
-                
-                <div class="flex items-center justify-between gap-3 mb-3">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-mono font-bold text-xs">
-                            05
+            <div class="bg-[#0b1426]/60 backdrop-blur-md rounded-2xl p-5 border border-slate-800/80 shadow-md w-full box-border">
+                <div class="flex items-center gap-2 mb-6">
+                    <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    <h3 class="text-sm font-bold text-slate-200">Statistik Patroli</h3>
+                </div>
+
+                <div class="flex justify-center items-center mb-6">
+                    <div class="relative w-36 h-36 flex items-center justify-center">
+                        <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                            <circle class="text-slate-900/80" cx="18" cy="18" r="16" stroke-width="2.8" stroke="currentColor" fill="none"/>
+                            <circle class="text-cyan-400 transition-all duration-700 ease-in-out" cx="18" cy="18" r="16" stroke-dasharray="75, 100" stroke-width="2.8" stroke-linecap="round" stroke="currentColor" fill="none"/>
+                        </svg>
+                        
+                        <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                            <p class="text-2xl font-black text-slate-100 font-mono tracking-tight leading-none">75%</p>
+                            <p class="text-[8px] uppercase tracking-wider text-slate-400 font-bold mt-1.5 leading-none">Rumah Dicek</p>
                         </div>
-                        <h4 class="text-xs font-bold text-slate-400 line-through">Rumah No. 4 (Bpk. Alfito)</h4>
-                    </div>
-                    
-                    <div class="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
-                        Selesai
                     </div>
                 </div>
 
-                <div class="text-[11px] text-slate-500 leading-relaxed font-normal bg-black/10 p-2.5 rounded border border-slate-900/40">
-                    <span class="text-emerald-500/70 font-bold">Pesan:</span> Titip kunci rumah di pos ronda.
+                <div class="grid grid-cols-2 gap-4 text-center border-t border-slate-800/60 pt-4 font-mono w-full">
+                    <div class="border-r border-slate-800/60">
+                        <p class="text-xs text-slate-400 mb-0.5">Total Rumah</p>
+                        <p class="text-base font-black text-slate-200">120</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 mb-0.5">Selesai</p>
+                        <p class="text-base font-black text-cyan-400">90</p>
+                    </div>
                 </div>
 
-                <div class="mt-3 pt-2.5 border-t border-slate-900/40 flex justify-between items-center text-[10px] text-slate-500 font-mono">
-                    <span>Oleh: Regu A</span>
-                    <span class="text-emerald-400 font-bold flex items-center gap-1">
-                        ✓ Dicek 21:00 WIB
-                    </span>
+                <div class="bg-slate-950/40 border border-slate-900 rounded-xl p-3 mt-4 flex items-center justify-between text-xs font-mono w-full box-border">
+                    <div>
+                        <p class="text-[9px] uppercase font-bold text-slate-500 mb-0.5">Sisa Waktu Shift</p>
+                        <p class="text-xs sm:text-sm font-bold text-slate-300">05:23:42</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[9px] uppercase font-bold text-cyan-500/80 block mb-0.5">⏱ Estimasi</span>
+                        <span class="text-[10px] text-slate-400">Tepat Waktu</span>
+                    </div>
                 </div>
             </div>
 
         </div>
     </div>
+</div>
 
+<div class="fixed bottom-4 right-4 z-50">
+    <button class="relative w-12 h-12 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-full flex items-center justify-center text-red-400 transition-all active:scale-95 shadow-lg">
+        <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+        </svg>
+        <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-slate-950 text-[9px] font-black rounded-full flex items-center justify-center font-mono">3</span>
+    </button>
+</div>
 {% endblock content %}

@@ -24,6 +24,35 @@ def _buat_username(nik):
         suffix  += 1
     return username
 
+
+def _get_jadwal_aktif(user):
+    """
+    Cari JadwalRonda hari ini untuk user ini yang sedang aktif.
+    Return jadwal jika ada dan masih aktif, None jika tidak.
+    """
+    from patrol.models import JadwalRonda
+    from datetime import date
+    today = date.today()
+    jadwal = JadwalRonda.objects.filter(petugas=user, tanggal=today).first()
+    if jadwal and jadwal.is_absen_masih_bisa():
+        return jadwal
+    return None
+
+def _auto_reset_active_role(profile):
+    """
+    Jika user sedang mode PETUGAS tapi shift-nya sudah selesai,
+    reset active_role ke WARGA secara otomatis.
+    Dipanggil saat page load di home_index, profile_view, switch_role_view.
+    """
+    if profile.get_active_role() == 'PETUGAS':
+        from patrol.models import JadwalRonda
+        from datetime import date
+        today  = date.today()
+        jadwal = JadwalRonda.objects.filter(petugas=profile.user, tanggal=today).first()
+        if not jadwal or jadwal.is_shift_selesai():
+            profile.active_role = 'WARGA'
+            profile.save(update_fields=['active_role'])
+
 def _redirect_after_login(user):
     """Tentukan halaman tujuan setelah login berdasarkan role."""
     if user.is_staff or user.is_superuser:
@@ -45,9 +74,11 @@ def landing_index(request):
 
 @login_required
 def home_index(request):
-    # Admin tidak punya profile, arahkan ke admin panel
     if request.user.is_staff or request.user.is_superuser:
         return redirect('/admin/')
+    profile = _get_or_create_profile(request.user)
+    if profile.get_active_role() == 'PETUGAS':
+        return redirect('patrol:petugas_home')
     return render(request, 'account/home.html')
 
 def login_view(request):
@@ -148,9 +179,10 @@ def logout_view(request):
 
 @login_required
 def profile_view(request):
-    profile = _get_or_create_profile(request.user)
+    profile = _get_or_create_profile(request.user)                        
     petugas = UserProfile.objects.filter(role='PETUGAS', is_verified=True).select_related('user')
     is_locked = profile.submission_status in ('pending', 'verified')
+    jadwal_aktif = _get_jadwal_aktif(request.user) if profile.role == 'PETUGAS' else None 
 
     # 1. Handle Upload Foto Profil (Bisa dilakukan kapan saja, meski locked)
     if request.method == 'POST' and 'upload_foto_profil' in request.POST:
@@ -201,6 +233,13 @@ def profile_view(request):
         {'label': 'Nomor HP', 'value': profile.no_hp},
     ]
 
+    shift_info = None
+    if profile.role == 'PETUGAS' and jadwal_aktif:
+        shift_info = {
+            'jam_mulai'  : jadwal_aktif.jam_mulai.strftime('%H:%M'),
+            'jam_selesai': jadwal_aktif.jam_selesai.strftime('%H:%M'),
+        }
+
     return render(request, 'account/profile.html', {
         'form': form,
         'profile': profile,
@@ -210,16 +249,33 @@ def profile_view(request):
         'progress': profile.progress,
         'step_list': ['Buat Akun', 'Lengkapi Identitas', 'Upload KTP/KK', 'Disetujui RT'],
         'readonly_data': readonly_data,
+        'jadwal_aktif' : jadwal_aktif,  
+        'shift_info'   : shift_info,
     })
 
 @login_required
 def switch_role_view(request):
-    profile = _get_or_create_profile(request.user)  # aman, tidak crash
-    if request.method == 'POST':
-        current = profile.get_active_role()
-        if current == 'WARGA' and profile.role == 'PETUGAS':
-            profile.active_role = 'PETUGAS'
-        elif current == 'PETUGAS':
-            profile.active_role = 'WARGA'
+    if request.method != 'POST':
+        return redirect('account:profile')
+
+    profile = _get_or_create_profile(request.user)
+    current = profile.get_active_role()
+
+    if current == 'PETUGAS':
+        # Petugas → Warga: bisa kapan saja
+        profile.active_role = 'WARGA'
         profile.save(update_fields=['active_role'])
-    return redirect(request.POST.get('next', 'account:profile'))
+        return redirect('account:home_index')
+
+    elif current == 'WARGA' and profile.role == 'PETUGAS':
+        # Warga → Petugas: hanya kalau shift sedang aktif
+        jadwal = _get_jadwal_aktif(request.user)
+        if jadwal:
+            profile.active_role = 'PETUGAS'
+            profile.save(update_fields=['active_role'])
+            return redirect('patrol:petugas_home')
+        else:
+            # Shift belum mulai / sudah selesai → tolak
+            return redirect('account:profile')
+
+    return redirect('account:profile')

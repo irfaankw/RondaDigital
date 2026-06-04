@@ -4,63 +4,56 @@ from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.http import JsonResponse
 from .models import JadwalRonda, AbsensiShift
-from .utils import validasi_lokasi
 from datetime import date
 import json, base64
 from django.core.files.base import ContentFile
 
 @login_required
 def petugas_dashboard(request):
-    # Mock data untuk ringkasan di halaman utama petugas
     context = {
-        'user_profile': {'role': 'PETUGAS'},
         'total_laporan': 12,
-        'status_ronda': 'Aman Kondusif',
+        'status_ronda' : 'Aman Kondusif',
     }
     return render(request, 'patrol/petugas_home.html', context)
 
 @login_required
 def petugas_cctv(request):
-    # Mock data daftar url/lokasi CCTV lingkungan RT
     context = {
-        'user_profile': {'role': 'PETUGAS'},
         'cctv_list': [
             {'id': 1, 'lokasi': 'Gapura Utama RT 01', 'status': 'Online'},
             {'id': 2, 'lokasi': 'Pertigaan Pos Ronda', 'status': 'Online'},
-            {'id': 3, 'lokasi': 'Area Lapangan Warga', 'status': 'Offline'},
+            {'id': 3, 'lokasi': 'Area Lapangan Warga',  'status': 'Offline'},
         ]
     }
     return render(request, 'patrol/petugas_cctv.html', context)
 
 @login_required
 def petugas_alert(request):
-    # Mock data laporan darurat (seperti contoh yang kamu bagikan sebelumnya)
     context = {
-        'user_profile': {'role': 'PETUGAS'},
         'laporan_list': [
             {
-                'id': 1,
-                'judul': 'Pencurian Motor',
+                'id'     : 1,
+                'judul'  : 'Pencurian Motor',
                 'pelapor': 'M. Nurkholis',
                 'tanggal': '25 Mei 2026',
-                'status': 'menunggu',  # oren
-                'detail': 'Motor Scoopy hitam plat KT XXXX hilang di parkiran depan.'
+                'status' : 'menunggu',
+                'detail' : 'Motor Scoopy hitam plat KT XXXX hilang di parkiran depan.'
             },
             {
-                'id': 2,
-                'judul': 'Kecelakaan Beruntun',
+                'id'     : 2,
+                'judul'  : 'Kecelakaan Beruntun',
                 'pelapor': 'Alfito Rayzha',
                 'tanggal': '24 Mei 2026',
-                'status': 'direspons',  # ungu
-                'detail': 'Ada mobil nabrak tiang listrik dekat pos ronda.'
+                'status' : 'direspons',
+                'detail' : 'Ada mobil nabrak tiang listrik dekat pos ronda.'
             },
             {
-                'id': 3,
-                'judul': 'Pencurian Helm',
+                'id'     : 3,
+                'judul'  : 'Pencurian Helm',
                 'pelapor': 'Siswan Aryadi',
                 'tanggal': '20 Mei 2026',
-                'status': 'selesai',  # hijau
-                'detail': 'Helm KYT di atas motor hilang, tapi pelakunya sudah damai.'
+                'status' : 'selesai',
+                'detail' : 'Helm KYT di atas motor hilang, tapi pelakunya sudah damai.'
             }
         ]
     }
@@ -68,26 +61,20 @@ def petugas_alert(request):
 
 @login_required
 def petugas_shift(request):
-    today        = date.today()
-    user         = request.user
-    now          = timezone.now()
+    today = date.today()
+    user  = request.user
 
-    jadwal_saya  = JadwalRonda.objects.filter(
-        petugas=user, tanggal=today
-    ).first()
-
-    semua_jadwal = JadwalRonda.objects.filter(
-        tanggal=today
-    ).select_related('petugas__profile').order_by('jam_mulai')
+    jadwal_saya  = JadwalRonda.objects.filter(petugas=user, tanggal=today).first()
+    semua_jadwal = JadwalRonda.objects.filter(tanggal=today).select_related('petugas__profile').order_by('jam_mulai')
 
     sudah_absen  = bool(jadwal_saya and hasattr(jadwal_saya, 'absensi'))
     absensi_saya = jadwal_saya.absensi if sudah_absen else None
 
     jadwal_shift_list = []
     for j in semua_jadwal:
-        profile  = getattr(j.petugas, 'profile', None)
-        nama     = profile.nama_lengkap if profile else j.petugas.username
-        inisial  = ''.join([k[0].upper() for k in nama.split()[:2]])
+        profile     = getattr(j.petugas, 'profile', None)
+        nama        = profile.nama_lengkap if profile else j.petugas.username
+        inisial     = ''.join([k[0].upper() for k in nama.split()[:2]])
         absensi_obj = getattr(j, 'absensi', None)
 
         if absensi_obj:
@@ -169,15 +156,14 @@ def simpan_absensi(request):
 
         foto_b64 = data.get('foto_base64')
         if foto_b64 and ';base64,' in foto_b64:
-            fmt, imgstr    = foto_b64.split(';base64,')
-            ext            = fmt.split('/')[-1]
+            fmt, imgstr        = foto_b64.split(';base64,')
+            ext                = fmt.split('/')[-1]
             absensi.foto_absen = ContentFile(
                 base64.b64decode(imgstr),
                 name=f"absen_{request.user.id}_{today}.{ext}"
             )
 
         absensi.save()
-
         waktu_lokal = timezone.localtime(absensi.waktu_absen)
 
         return JsonResponse({

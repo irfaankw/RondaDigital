@@ -1,7 +1,94 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pemantauan Rumah - RondaDigital{% endblock title %}
+
+{% block main_class %}flex justify-center items-start px-4 py-6{% endblock main_class %}
 
 {% block content %}
+<div class="w-full max-w-md space-y-5 pb-12">
 
-<h1>ini halaman petugas patroli</h1>
+    <div class="px-1">
+        <h2 class="text-xl font-bold text-slate-100 tracking-tight">Tugas Patroli Malam</h2>
+        <p class="text-xs text-slate-400 mt-1">Daftar rumah warga yang memerlukan pengawasan khusus.</p>
+    </div>
+
+    <div class="bg-[#0b1426]/60 backdrop-blur-md rounded-2xl p-5 border border-slate-800/80 shadow-md">
+        
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 12l2 2 4-4m2 5l2 2 4-4M5 5h.01M4 12h.01M4 19h.01M13 5h8M13 12h8M13 19h8"></path>
+                </svg>
+                <h3 class="text-xs font-bold text-slate-200 tracking-wide">Checklist Pemantauan Rumah</h3>
+            </div>
+            <span class="text-xs font-bold text-cyan-400 font-mono">1/2 Selesai</span>
+        </div>
+        
+        <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden mb-6 border border-slate-800/50">
+            <div class="bg-gradient-to-r from-cyan-500 to-teal-400 h-full rounded-full" style="width: 50%"></div>
+        </div>
+
+        <div class="space-y-4">
+            
+            <div class="p-4 rounded-xl bg-slate-950/40 border border-amber-500/20 shadow-inner">
+                
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-mono font-bold text-xs">
+                            11
+                        </div>
+                        <h4 class="text-xs font-bold text-slate-200">Rumah No. 11 (Bpk. Alul)</h4>
+                    </div>
+                    
+                    <div class="flex items-center gap-1.5 px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                        Menunggu
+                    </div>
+                </div>
+
+                <div class="text-[11px] text-slate-400 leading-relaxed font-normal bg-black/20 p-2.5 rounded border border-slate-900/60">
+                    <span class="text-amber-400 font-bold">Pesan:</span> Ditinggal mudik, tolong pantau pintu belakang.
+                </div>
+
+                <div class="mt-3.5 pt-3 border-t border-slate-900/60">
+                    <button onclick="alert('Status Rumah No. 11 berhasil diubah menjadi Selesai Dipantau!')" class="w-full text-[11px] font-bold text-slate-950 bg-cyan-400 hover:bg-cyan-300 px-4 py-2 rounded-lg transition-all active:scale-[0.98] shadow-md shadow-cyan-400/10 flex items-center justify-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Tandai Sdh Dipantau
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-950/20 border border-slate-800/40 opacity-70">
+                
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-mono font-bold text-xs">
+                            05
+                        </div>
+                        <h4 class="text-xs font-bold text-slate-400 line-through">Rumah No. 4 (Bpk. Alfito)</h4>
+                    </div>
+                    
+                    <div class="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
+                        Selesai
+                    </div>
+                </div>
+
+                <div class="text-[11px] text-slate-500 leading-relaxed font-normal bg-black/10 p-2.5 rounded border border-slate-900/40">
+                    <span class="text-emerald-500/70 font-bold">Pesan:</span> Titip kunci rumah di pos ronda.
+                </div>
+
+                <div class="mt-3 pt-2.5 border-t border-slate-900/40 flex justify-between items-center text-[10px] text-slate-500 font-mono">
+                    <span>Oleh: Regu A</span>
+                    <span class="text-emerald-400 font-bold flex items-center gap-1">
+                        ✓ Dicek 21:00 WIB
+                    </span>
+                </div>
+            </div>
+
+        </div>
+    </div>
 
 {% endblock content %}

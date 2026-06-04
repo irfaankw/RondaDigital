@@ -4,10 +4,24 @@ from django.utils import timezone
 from datetime import timedelta, datetime, time as dtime
 
 class JadwalRonda(models.Model):
-    petugas     = models.ForeignKey(User, on_delete=models.CASCADE, related_name='jadwal_ronda')
+
+    # ForeignKey diganti ManyToManyField → support 5–7 petugas per jadwal
+    petugas = models.ManyToManyField(
+        User,
+        related_name='jadwal_ronda',
+        blank=True,
+    )
     tanggal     = models.DateField()
     jam_mulai   = models.TimeField()
     jam_selesai = models.TimeField()
+    blok_area   = models.CharField(
+        max_length=100, blank=True,
+        help_text='Contoh: Blok A-D, Area Timur, dll'
+    )
+    catatan_rt  = models.TextField(
+        blank=True,
+        help_text='Catatan dari Ketua RT untuk petugas'
+    )
     dibuat_oleh = models.ForeignKey(
         User, on_delete=models.SET_NULL,
         null=True, blank=True,
@@ -19,50 +33,52 @@ class JadwalRonda(models.Model):
         verbose_name        = 'Jadwal Ronda'
         verbose_name_plural = 'Jadwal Ronda'
         ordering            = ['tanggal', 'jam_mulai']
-        unique_together     = ['petugas', 'tanggal', 'jam_mulai']
+        # unique_together dihapus karena petugas kini ManyToMany
 
     def __str__(self):
-        profile = getattr(self.petugas, 'profile', None)
-        nama    = profile.nama_lengkap if profile else self.petugas.username
-        return f"{nama} | {self.tanggal} {self.jam_mulai}"
+        jumlah = self.petugas.count()
+        return f"{jumlah} petugas | {self.tanggal} {self.jam_mulai}"
 
     def get_datetime_mulai(self):
         dt = datetime.combine(self.tanggal, self.jam_mulai)
         return timezone.make_aware(dt)
 
     def get_datetime_selesai(self):
-        """
-        Tangani kasus jam_selesai melewati tengah malam.
-        Misal: mulai 20:00, selesai 05:00 → selesai = tanggal+1 jam 05:00
-        """
         from datetime import timedelta as td
         dt_mulai   = datetime.combine(self.tanggal, self.jam_mulai)
         dt_selesai = datetime.combine(self.tanggal, self.jam_selesai)
-        # Kalau jam selesai < jam mulai, berarti melewati tengah malam
         if self.jam_selesai < self.jam_mulai:
             dt_selesai += td(days=1)
         return timezone.make_aware(dt_selesai)
 
     def batas_absen(self):
-        """Toleransi keterlambatan: 15 menit dari jam mulai."""
         return self.get_datetime_mulai() + timedelta(minutes=15)
 
     def is_terlambat(self):
-        """Sudah lewat 15 menit dari jam mulai."""
         return timezone.now() > self.batas_absen()
 
     def is_shift_selesai(self):
-        """Shift sudah berakhir."""
         return timezone.now() > self.get_datetime_selesai()
 
     def is_absen_masih_bisa(self):
-        """
-        Bisa absen selama shift belum selesai
-        (hadir tepat waktu: sebelum +15 menit, terlambat: setelah +15 menit tapi shift belum selesai)
-        """
         now = timezone.now()
         return self.get_datetime_mulai() <= now <= self.get_datetime_selesai()
 
+    @property
+    def status_jadwal(self):
+        """Return: 'aktif', 'akan_datang', atau 'selesai'"""
+        now = timezone.now()
+        if now < self.get_datetime_mulai():
+            return 'akan_datang'
+        elif now > self.get_datetime_selesai():
+            return 'selesai'
+        else:
+            return 'aktif'
+
+    @property
+    def label_waktu(self):
+        """Contoh: 21:00–05:00"""
+        return f"{self.jam_mulai.strftime('%H:%M')}–{self.jam_selesai.strftime('%H:%M')}"
 
 class AbsensiShift(models.Model):
     STATUS_ABSEN = [
@@ -71,7 +87,10 @@ class AbsensiShift(models.Model):
         ('tidak_hadir', 'Tidak Hadir'),
     ]
 
-    jadwal         = models.OneToOneField(JadwalRonda, on_delete=models.CASCADE, related_name='absensi')
+    jadwal         = models.OneToOneField(
+        JadwalRonda, on_delete=models.CASCADE,
+        related_name='absensi'
+    )
     waktu_absen    = models.DateTimeField(auto_now_add=True)
     foto_absen     = models.ImageField(upload_to='absensi/foto/', null=True, blank=True)
     latitude       = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)

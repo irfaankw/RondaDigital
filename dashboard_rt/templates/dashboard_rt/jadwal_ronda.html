@@ -1,0 +1,735 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Jadwal Ronda{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#0a0e1a]">
+
+  <!-- ══════════════════════════════════════════════
+       HEADER
+  ══════════════════════════════════════════════ -->
+  <div class="px-6 pt-8 pb-4">
+    <div class="flex items-center justify-between flex-wrap gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-white tracking-tight">Jadwal Ronda</h1>
+        <p class="text-sm text-slate-400 mt-0.5">
+          {% if request.user.profile.rt %}
+            RT {{ request.user.profile.rt.nomor_rt }}/RW {{ request.user.profile.rt.nomor_rw }} &middot; {{ request.user.profile.rt.nama_wilayah }}
+          {% else %}
+            Kelola jadwal ronda lingkungan
+          {% endif %}
+        </p>
+      </div>
+      <button
+        id="btnBuatJadwal"
+        class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white
+               bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all duration-150 shadow-lg shadow-indigo-900/40"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+        </svg>
+        Buat Jadwal
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       STATISTIK CARDS
+  ══════════════════════════════════════════════ -->
+  <div class="px-6 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+      <!-- Total -->
+      <div class="rounded-2xl border border-slate-700/50 bg-[#111827] px-5 py-4">
+        <p class="text-xs font-semibold tracking-widest text-slate-500 uppercase mb-2">Total Jadwal</p>
+        <p class="text-3xl font-bold text-white" id="statTotal">{{ total }}</p>
+      </div>
+
+      <!-- Aktif -->
+      <div class="rounded-2xl border border-emerald-800/40 bg-[#0b1e15] px-5 py-4">
+        <p class="text-xs font-semibold tracking-widest text-emerald-500 uppercase mb-2">Sedang Aktif</p>
+        <p class="text-3xl font-bold text-emerald-400" id="statAktif">
+          {{ jadwal_data|length }}{% with aktif=0 %}
+          {# hitung aktif via template tag tidak ada, kita set via JS #}
+          {% endwith %}
+          <span class="hidden" id="rawAktif">{% for j in jadwal_data %}{% if j.status == 'aktif' %}1{% endif %}{% endfor %}</span>
+        </p>
+      </div>
+
+      <!-- Akan Datang -->
+      <div class="rounded-2xl border border-indigo-800/40 bg-[#0e0f20] px-5 py-4">
+        <p class="text-xs font-semibold tracking-widest text-indigo-400 uppercase mb-2">Akan Datang</p>
+        <p class="text-3xl font-bold text-indigo-300" id="statAkanDatang">
+          <span class="hidden" id="rawAkanDatang">{% for j in jadwal_data %}{% if j.status == 'akan_datang' %}1{% endif %}{% endfor %}</span>
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       DAFTAR JADWAL / EMPTY STATE
+  ══════════════════════════════════════════════ -->
+  <div class="px-6 pb-10" id="jadwalContainer">
+
+    {% if not jadwal_data %}
+    <!-- EMPTY STATE -->
+    <div id="emptyState" class="flex flex-col items-center justify-center py-24 text-center">
+      <div class="w-20 h-20 rounded-full bg-slate-800 flex items-center justify-center mb-6">
+        <svg class="w-9 h-9 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
+        </svg>
+      </div>
+      <h3 class="text-lg font-semibold text-white mb-2">Belum ada jadwal ronda</h3>
+      <p class="text-sm text-slate-400 max-w-xs">Jadwal ronda masih kosong. Mulai buat jadwal untuk mengatur patroli lingkungan.</p>
+      <button
+        id="btnBuatPertama"
+        class="mt-8 flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm text-white
+               bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all duration-150"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+        </svg>
+        Buat Jadwal Pertama
+      </button>
+    </div>
+
+    {% else %}
+    <!-- LIST JADWAL -->
+    <p class="text-sm text-slate-500 mb-4">{{ total }} jadwal tersimpan</p>
+    <div id="jadwalList" class="space-y-3">
+      {% for j in jadwal_data %}
+      <div
+        class="jadwal-card rounded-2xl border border-slate-700/50 bg-[#111827] px-5 py-4
+               hover:border-slate-600 transition-all duration-200 cursor-default"
+        data-id="{{ j.obj.pk }}"
+      >
+        <div class="flex items-start justify-between gap-3">
+
+          <!-- Kiri: info utama -->
+          <div class="flex items-start gap-3 min-w-0">
+            <!-- Ikon kalender -->
+            <div class="mt-0.5 shrink-0 w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
+              </svg>
+            </div>
+            <div class="min-w-0">
+              <!-- Tanggal + badge status -->
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-semibold text-white text-sm">
+                  {{ j.obj.tanggal|date:"d M Y" }}
+                </span>
+                {% if j.status == 'aktif' %}
+                  <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-900/60 text-emerald-300 border border-emerald-700/40">Aktif</span>
+                {% elif j.status == 'akan_datang' %}
+                  <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-900/60 text-indigo-300 border border-indigo-700/40">Akan Datang</span>
+                {% else %}
+                  <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-400 border border-slate-700/40">Selesai</span>
+                {% endif %}
+              </div>
+              <!-- Waktu + blok area -->
+              <p class="text-xs text-slate-400 mt-0.5">
+                {{ j.label_waktu }}{% if j.obj.blok_area %} &middot; {{ j.obj.blok_area }}{% endif %}
+              </p>
+              <!-- Petugas avatars -->
+              <div class="flex flex-wrap gap-1.5 mt-2">
+                {% for p in j.petugas_info %}
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium
+                             bg-slate-700/70 text-slate-300 border border-slate-600/40">
+                  <span class="w-4 h-4 rounded-full bg-indigo-600 flex items-center justify-center text-[9px] font-bold text-white shrink-0">
+                    {{ p.inisial }}
+                  </span>
+                  {{ p.nama }}
+                </span>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Kanan: tombol edit -->
+          <button
+            class="shrink-0 w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700
+                   flex items-center justify-center text-slate-400 hover:text-white
+                   transition-colors duration-150 btn-edit"
+            data-id="{{ j.obj.pk }}"
+            title="Edit jadwal"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"/>
+            </svg>
+          </button>
+
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- MODAL BUAT / EDIT JADWAL -->
+<div
+  id="modalOverlay"
+  class="fixed inset-0 z-50 flex items-start justify-center pt-[88px] px-4 pb-4 hidden"
+  style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);"
+>
+  <div
+    id="modalBox"
+    class="relative w-full max-w-2xl max-h-[calc(100vh-108px)] overflow-y-auto rounded-2xl
+           bg-[#111827] border border-slate-700/60 shadow-2xl"
+    style="scrollbar-width: none;"
+  >
+    <!-- Header modal -->
+    <div class="sticky top-0 z-10 flex items-center justify-between px-6 py-4
+                bg-[#111827] border-b border-slate-700/50">
+      <h2 id="modalTitle" class="text-base font-semibold text-white">Buat Jadwal Ronda</h2>
+      <button id="btnTutupModal" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700
+              flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Body modal -->
+    <div class="px-6 py-5 space-y-6">
+
+      <!-- JADWAL -->
+      <section>
+        <p class="text-xs font-semibold tracking-widest text-slate-500 uppercase mb-3">Jadwal</p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+
+          <!-- Tanggal -->
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Tanggal <span class="text-red-400">*</span></label>
+            <input
+              type="date" id="inputTanggal"
+              class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2.5
+                     text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+            />
+            <p class="text-[11px] text-slate-500 mt-1">Hari ini s/d 6 hari ke depan</p>
+          </div>
+
+          <!-- Jam Mulai -->
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Jam Mulai</label>
+            <input
+              type="text" id="inputJamMulai" value="21:00" readonly
+              class="w-full bg-slate-700/50 border border-slate-600 rounded-xl px-3 py-2.5
+                     text-slate-300 text-sm cursor-not-allowed"
+            />
+          </div>
+
+          <!-- Jam Selesai -->
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Jam Selesai</label>
+            <input
+              type="text" id="inputJamSelesai" value="05:00" readonly
+              class="w-full bg-slate-700/50 border border-slate-600 rounded-xl px-3 py-2.5
+                     text-slate-300 text-sm cursor-not-allowed"
+            />
+          </div>
+
+        </div>
+      </section>
+
+      <!-- AREA -->
+      <section>
+        <p class="text-xs font-semibold tracking-widest text-slate-500 uppercase mb-3">Area Patroli</p>
+        <input
+          type="text" id="inputBlokArea"
+          placeholder="Contoh: Blok A-D, Area Timur, dll"
+          class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2.5
+                 text-white text-sm placeholder-slate-500
+                 focus:outline-none focus:border-indigo-500 transition-colors"
+        />
+      </section>
+
+      <!-- PETUGAS -->
+      <section>
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-xs font-semibold tracking-widest text-slate-500 uppercase">
+            Petugas <span class="text-slate-600 normal-case font-normal text-xs tracking-normal">(min 5, maks 7)</span>
+          </p>
+          <span id="counterPetugas" class="text-xs text-slate-500">0 / 7 dipilih</span>
+        </div>
+
+        <!-- Search petugas -->
+        <div class="relative mb-3">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"
+               fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+          </svg>
+          <input
+            type="text" id="searchPetugas"
+            placeholder="Cari nama warga terverifikasi..."
+            class="w-full bg-slate-800 border border-slate-600 rounded-xl pl-9 pr-3 py-2.5
+                   text-white text-sm placeholder-slate-500
+                   focus:outline-none focus:border-indigo-500 transition-colors"
+          />
+        </div>
+
+        <!-- List warga -->
+        <div id="listWarga"
+             class="max-h-44 overflow-y-auto rounded-xl border border-slate-700/50 bg-slate-800/40 divide-y divide-slate-700/30"
+             style="scrollbar-width: thin; scrollbar-color: #334155 transparent;">
+          {% for w in warga_terverifikasi %}
+          <label
+            class="warga-item flex items-center gap-3 px-4 py-2.5 cursor-pointer
+                   hover:bg-slate-700/40 transition-colors"
+            data-id="{{ w.pk }}"
+            data-nama="{{ w.profile.nama_lengkap|default:w.username }}"
+          >
+            <input
+              type="checkbox"
+              class="petugas-cb w-4 h-4 rounded accent-indigo-500 shrink-0"
+              value="{{ w.pk }}"
+            />
+            <div class="min-w-0">
+              <p class="text-sm text-white font-medium truncate">
+                {{ w.profile.nama_lengkap|default:w.username }}
+              </p>
+              <p class="text-xs text-slate-500 truncate">@{{ w.username }}</p>
+            </div>
+          </label>
+          {% empty %}
+          <p class="text-sm text-slate-500 text-center py-6">Belum ada warga terverifikasi.</p>
+          {% endfor %}
+        </div>
+
+        <!-- Selected chips -->
+        <div id="chipsPetugas" class="flex flex-wrap gap-1.5 mt-3 min-h-[28px]"></div>
+      </section>
+
+      <!-- ITEM PATROLI -->
+      <section>
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-xs font-semibold tracking-widest text-slate-500 uppercase">Item Patroli</p>
+          <button type="button" id="btnTambahItem"
+                  class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+            Tambah Item
+          </button>
+        </div>
+        <div id="itemPatroliList" class="space-y-2"></div>
+      </section>
+
+      <!-- CATATAN RT -->
+      <section>
+        <p class="text-xs font-semibold tracking-widest text-slate-500 uppercase mb-3">Catatan untuk Petugas</p>
+        <textarea
+          id="inputCatatanRt" rows="3"
+          placeholder="Instruksi khusus, area yang perlu diperhatikan, dll."
+          class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2.5
+                 text-white text-sm placeholder-slate-500 resize-none
+                 focus:outline-none focus:border-indigo-500 transition-colors"
+        ></textarea>
+      </section>
+
+    </div>
+
+    <!-- Footer modal -->
+    <div class="sticky bottom-0 z-10 px-6 py-4 bg-[#111827] border-t border-slate-700/50
+                flex items-center justify-between gap-3">
+      <div id="modalError" class="text-sm text-red-400 hidden"></div>
+
+      <div class="flex items-center gap-2 ml-auto">
+        <!-- Tombol hapus (hanya saat edit) -->
+        <button id="btnHapusJadwal"
+                class="hidden px-4 py-2 rounded-xl text-sm font-medium text-red-400
+                       bg-red-900/20 hover:bg-red-900/40 border border-red-800/40
+                       transition-colors active:scale-95">
+          Hapus
+        </button>
+
+        <button id="btnBatalModal"
+                class="px-4 py-2 rounded-xl text-sm font-medium text-slate-300
+                       bg-slate-800 hover:bg-slate-700 border border-slate-600/50
+                       transition-colors active:scale-95">
+          Batal
+        </button>
+
+        <button id="btnSimpanJadwal"
+                class="px-5 py-2 rounded-xl text-sm font-semibold text-white
+                       bg-indigo-600 hover:bg-indigo-500
+                       transition-colors active:scale-95 flex items-center gap-2">
+          <span id="btnSimpanLabel">Simpan Jadwal</span>
+          <svg id="btnSimpanSpinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="white" stroke-width="4"/>
+            <path class="opacity-75" fill="white" d="M4 12a8 8 0 018-8v8z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  "use strict";
+
+  // ── Hitung statistik dari data Django ──────────────────────
+  const rawAktif       = document.getElementById('rawAktif');
+  const rawAkanDatang  = document.getElementById('rawAkanDatang');
+  const statAktif      = document.getElementById('statAktif');
+  const statAkanDatang = document.getElementById('statAkanDatang');
+  const statTotal      = document.getElementById('statTotal');
+
+  function hitungStat(rawEl) {
+    if (!rawEl) return 0;
+    return (rawEl.textContent.match(/1/g) || []).length;
+  }
+
+  statAktif.textContent      = hitungStat(rawAktif);
+  statAkanDatang.textContent = hitungStat(rawAkanDatang);
+  // total sudah di-render via Django, no-op
+
+  // ── Setup tanggal min/max ────────────────────────────────────
+  const inputTanggal = document.getElementById('inputTanggal');
+  function setupTanggal() {
+    const today = new Date();
+    const max   = new Date(today);
+    max.setDate(today.getDate() + 6);
+    const fmt = (d) => d.toISOString().split('T')[0];
+    inputTanggal.min = fmt(today);
+    inputTanggal.max = fmt(max);
+    inputTanggal.value = fmt(today);
+  }
+
+  // ── State modal ──────────────────────────────────────────────
+  let modalMode  = 'buat';   // 'buat' | 'edit'
+  let editJadwalId = null;
+  let selectedPetugas = {};  // { id: nama }
+
+  // ── DOM refs ─────────────────────────────────────────────────
+  const overlay      = document.getElementById('modalOverlay');
+  const modalBox     = document.getElementById('modalBox');
+  const modalTitle   = document.getElementById('modalTitle');
+  const btnTutup     = document.getElementById('btnTutupModal');
+  const btnBatal     = document.getElementById('btnBatalModal');
+  const btnSimpan    = document.getElementById('btnSimpanJadwal');
+  const btnSimpanLbl = document.getElementById('btnSimpanLabel');
+  const btnSpinner   = document.getElementById('btnSimpanSpinner');
+  const btnHapus     = document.getElementById('btnHapusJadwal');
+  const modalError   = document.getElementById('modalError');
+
+  const inputBlok    = document.getElementById('inputBlokArea');
+  const inputCatatan = document.getElementById('inputCatatanRt');
+  const searchInput  = document.getElementById('searchPetugas');
+  const listWarga    = document.getElementById('listWarga');
+  const chips        = document.getElementById('chipsPetugas');
+  const counter      = document.getElementById('counterPetugas');
+  const itemList     = document.getElementById('itemPatroliList');
+
+  // ── Buka modal ───────────────────────────────────────────────
+  function bukaModal(mode = 'buat') {
+    modalMode    = mode;
+    editJadwalId = null;
+    modalTitle.textContent = mode === 'buat' ? 'Buat Jadwal Ronda' : 'Edit Jadwal Ronda';
+    btnHapus.classList.toggle('hidden', mode !== 'edit');
+    btnSimpanLbl.textContent = mode === 'buat' ? 'Simpan Jadwal' : 'Perbarui Jadwal';
+    modalError.classList.add('hidden');
+
+    // Reset fields
+    setupTanggal();
+    inputBlok.value    = '';
+    inputCatatan.value = '';
+    selectedPetugas    = {};
+    renderChips();
+    resetCheckboxes();
+    renderItemList([]);
+
+    overlay.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function tutupModal() {
+    overlay.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  // ── Petugas checkbox & chips ─────────────────────────────────
+  function renderChips() {
+    chips.innerHTML = '';
+    const ids = Object.keys(selectedPetugas);
+    counter.textContent = `${ids.length} / 7 dipilih`;
+    ids.forEach(id => {
+      const nama = selectedPetugas[id];
+      const chip = document.createElement('span');
+      chip.className = 'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium bg-indigo-900/50 text-indigo-300 border border-indigo-700/40';
+      chip.innerHTML = `
+        <span class="w-4 h-4 rounded-full bg-indigo-600 flex items-center justify-center text-[9px] font-bold text-white">
+          ${getInisial(nama)}
+        </span>
+        ${nama}
+        <button data-id="${id}" class="chip-remove ml-0.5 text-indigo-400 hover:text-red-400 transition-colors">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      `;
+      chips.appendChild(chip);
+    });
+
+    // event chip remove
+    chips.querySelectorAll('.chip-remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const rmId = btn.dataset.id;
+        delete selectedPetugas[rmId];
+        // uncheck
+        const cb = listWarga.querySelector(`input[value="${rmId}"]`);
+        if (cb) cb.checked = false;
+        renderChips();
+      });
+    });
+  }
+
+  function resetCheckboxes() {
+    listWarga.querySelectorAll('.petugas-cb').forEach(cb => { cb.checked = false; });
+  }
+
+  function getInisial(nama) {
+    return (nama || '?').split(' ').slice(0, 2).map(w => w[0].toUpperCase()).join('');
+  }
+
+  // Checkbox change
+  listWarga.addEventListener('change', e => {
+    if (!e.target.classList.contains('petugas-cb')) return;
+    const id   = e.target.value;
+    const label = e.target.closest('.warga-item');
+    const nama  = label ? label.dataset.nama : id;
+
+    if (e.target.checked) {
+      if (Object.keys(selectedPetugas).length >= 7) {
+        e.target.checked = false;
+        tampilError('Maksimal 7 petugas per jadwal.');
+        return;
+      }
+      selectedPetugas[id] = nama;
+    } else {
+      delete selectedPetugas[id];
+    }
+    renderChips();
+  });
+
+  // Search filter
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.toLowerCase();
+    listWarga.querySelectorAll('.warga-item').forEach(item => {
+      const nama = item.dataset.nama.toLowerCase();
+      item.style.display = nama.includes(q) ? '' : 'none';
+    });
+  });
+
+  // ── Item patroli ─────────────────────────────────────────────
+  function renderItemList(items) {
+    itemList.innerHTML = '';
+    items.forEach((val, i) => tambahItemRow(val));
+    if (items.length === 0) tambahItemRow('');
+  }
+
+  function tambahItemRow(value = '') {
+    const div = document.createElement('div');
+    div.className = 'flex items-center gap-2';
+    div.innerHTML = `
+      <span class="text-xs text-slate-600 w-5 text-right shrink-0">${itemList.children.length + 1}.</span>
+      <input type="text"
+        class="item-input flex-1 bg-slate-800 border border-slate-600 rounded-xl px-3 py-2
+               text-white text-sm placeholder-slate-500
+               focus:outline-none focus:border-indigo-500 transition-colors"
+        placeholder="Deskripsi item patroli..."
+        value="${escapeHtml(value)}"
+      />
+      <button type="button" class="btn-hapus-item w-7 h-7 rounded-lg bg-slate-800 hover:bg-red-900/40
+              flex items-center justify-center text-slate-500 hover:text-red-400 transition-colors shrink-0">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    `;
+    div.querySelector('.btn-hapus-item').addEventListener('click', () => {
+      div.remove();
+      renumberItems();
+    });
+    itemList.appendChild(div);
+  }
+
+  function renumberItems() {
+    itemList.querySelectorAll('span').forEach((sp, i) => { sp.textContent = `${i + 1}.`; });
+  }
+
+  document.getElementById('btnTambahItem').addEventListener('click', () => tambahItemRow(''));
+
+  // ── Error helper ─────────────────────────────────────────────
+  function tampilError(msg) {
+    modalError.textContent = msg;
+    modalError.classList.remove('hidden');
+    setTimeout(() => modalError.classList.add('hidden'), 4000);
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Kumpulkan data form ───────────────────────────────────────
+  function kumpulData() {
+    const items = Array.from(itemList.querySelectorAll('.item-input'))
+      .map(i => i.value.trim()).filter(Boolean);
+
+    return {
+      petugas_ids : Object.keys(selectedPetugas).map(Number),
+      tanggal     : inputTanggal.value,
+      jam_mulai   : '21:00',
+      jam_selesai : '05:00',
+      blok_area   : inputBlok.value.trim(),
+      catatan_rt  : inputCatatan.value.trim(),
+      items,
+    };
+  }
+
+  // ── Kirim AJAX ───────────────────────────────────────────────
+  function getCSRF() {
+    return document.cookie.split('; ')
+      .find(r => r.startsWith('csrftoken='))?.split('=')[1] || '';
+  }
+
+  async function kirimJadwal(url, data) {
+    btnSimpan.disabled = true;
+    btnSpinner.classList.remove('hidden');
+    modalError.classList.add('hidden');
+
+    try {
+      const res = await fetch(url, {
+        method : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken' : getCSRF(),
+        },
+        body: JSON.stringify(data),
+      });
+      const json = await res.json();
+      if (json.ok) {
+        location.reload();
+      } else {
+        tampilError(json.pesan || 'Terjadi kesalahan.');
+      }
+    } catch {
+      tampilError('Gagal terhubung ke server.');
+    } finally {
+      btnSimpan.disabled = false;
+      btnSpinner.classList.add('hidden');
+    }
+  }
+
+  // ── Simpan ───────────────────────────────────────────────────
+  btnSimpan.addEventListener('click', () => {
+    const data = kumpulData();
+
+    if (!data.tanggal)           return tampilError('Tanggal wajib diisi.');
+    if (data.petugas_ids.length < 5) return tampilError('Minimal 5 petugas harus dipilih.');
+    if (data.petugas_ids.length > 7) return tampilError('Maksimal 7 petugas per jadwal.');
+
+    if (modalMode === 'buat') {
+      kirimJadwal('{% url "dashboard_rt:jadwal_buat" %}', data);
+    } else {
+      kirimJadwal(`/panel-rt/jadwal-ronda/${editJadwalId}/edit/`, data);
+    }
+  });
+
+  // ── Hapus ─────────────────────────────────────────────────────
+  btnHapus.addEventListener('click', async () => {
+    if (!editJadwalId) return;
+    if (!confirm('Yakin ingin menghapus jadwal ini?')) return;
+
+    try {
+      const res = await fetch(`/dashboard-rt/jadwal-ronda/${editJadwalId}/hapus/`, {
+        method : 'POST',
+        headers: { 'X-CSRFToken': getCSRF() },
+      });
+      const json = await res.json();
+      if (json.ok) location.reload();
+      else tampilError(json.pesan || 'Gagal menghapus.');
+    } catch {
+      tampilError('Gagal terhubung ke server.');
+    }
+  });
+
+  // ── Edit: load data ───────────────────────────────────────────
+  async function bukaEdit(pk) {
+    bukaModal('edit');
+    editJadwalId = pk;
+
+    try {
+      const res  = await fetch(`/panel-rt/jadwal-ronda/${pk}/`);
+      const data = await res.json();
+      if (!data.ok) return tampilError('Gagal memuat data jadwal.');
+
+      // Isi field
+      inputTanggal.value  = data.tanggal;
+      inputBlok.value     = data.blok_area || '';
+      inputCatatan.value  = data.catatan_rt || '';
+
+      // Petugas
+      selectedPetugas = {};
+      data.petugas.forEach(p => {
+        selectedPetugas[p.id] = p.nama;
+        const cb = listWarga.querySelector(`input[value="${p.id}"]`);
+        if (cb) cb.checked = true;
+      });
+      renderChips();
+
+      // Items
+      renderItemList((data.items || []).map(i => i.deskripsi));
+
+    } catch {
+      tampilError('Gagal memuat data.');
+    }
+  }
+
+  // ── Tutup modal ───────────────────────────────────────────────
+  [btnTutup, btnBatal].forEach(b => b.addEventListener('click', tutupModal));
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) tutupModal();
+  });
+
+  // ── Tombol buat ───────────────────────────────────────────────
+  document.getElementById('btnBuatJadwal').addEventListener('click', () => bukaModal('buat'));
+  const btnPertama = document.getElementById('btnBuatPertama');
+  if (btnPertama) btnPertama.addEventListener('click', () => bukaModal('buat'));
+
+  // ── Tombol edit pada card ────────────────────────────────────
+  document.querySelectorAll('.btn-edit').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      bukaEdit(btn.dataset.id);
+    });
+  });
+
+  // ── Inisiasi tanggal saat load ────────────────────────────────
+  setupTanggal();
+
+})();
+</script>
+
+<style>
+  /* Sembunyikan scrollbar modal box */
+  #modalBox::-webkit-scrollbar { display: none; }
+  #listWarga::-webkit-scrollbar { width: 4px; }
+  #listWarga::-webkit-scrollbar-track { background: transparent; }
+  #listWarga::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+</style>
+
+{% endblock %}

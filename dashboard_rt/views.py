@@ -16,6 +16,56 @@ import json
 def dashboard(request):
     return render(request, 'dashboard_rt/dashboard.html')
 
+
+@login_required
+@rt_required
+def verifikasi_warga_list(request):
+    """Menampilkan daftar warga yang berada di bawah wilayah RT ketua RT yang login."""
+    # Ambil nomor RT dari pengurus RT yang sedang login
+    rt_pengurus = request.user.profile.rt
+
+    # Ambil data warga di RT tersebut, urutkan berdasarkan status 'pending' (Menunggu) terlebih dahulu
+    # Kita tidak menampilkan sesama akun RT di daftar verifikasi
+    daftar_warga = (
+        UserProfile.objects
+        .filter(rt=rt_pengurus)
+        .exclude(role='RT')
+        .select_related('user')
+        .order_by('submission_status', '-created_at')
+    )
+
+    context = {
+        'daftar_warga': daftar_warga,
+        'rt_pengurus': rt_pengurus,
+    }
+    return render(request, 'dashboard_rt/verifikasi_warga.html', context)
+
+
+@login_required
+@rt_required
+@require_POST
+def verifikasi_aksi(request, profile_id):
+    """Proses verifikasi setuju atau tolak warga lewat AJAX atau POST."""
+    rt_pengurus = request.user.profile.rt
+    # Pastikan profile yang diakses benar-benar sewilayah RT untuk keamanan
+    profile_warga = get_object_or_404(UserProfile, id=profile_id, rt=rt_pengurus)
+    
+    aksi = request.POST.get('action') # 'setuju' atau 'tolak'
+    
+    if aksi == 'setuju':
+        profile_warga.is_verified = True
+        profile_warga.submission_status = 'verified'
+        profile_warga.save()
+        return JsonResponse({'ok': True, 'pesan': f'Profil {profile_warga.nama_lengkap} berhasil diverifikasi.'})
+        
+    elif aksi == 'tolak':
+        profile_warga.is_verified = False
+        profile_warga.submission_status = 'draft'  # Dikembalikan ke draft agar bisa diedit warga lagi
+        profile_warga.save()
+        return JsonResponse({'ok': True, 'pesan': f'Berkas {profile_warga.nama_lengkap} berhasil ditolak.'})
+
+    return JsonResponse({'ok': False, 'pesan': 'Aksi tidak valid.'})
+
 @login_required
 @rt_required
 def jadwal_ronda(request):
@@ -252,3 +302,9 @@ def jadwal_hapus(request, pk):
     jadwal = get_object_or_404(JadwalRonda, pk=pk, dibuat_oleh=request.user)
     jadwal.delete()
     return JsonResponse({'ok': True, 'pesan': 'Jadwal berhasil dihapus.'})
+
+@login_required
+@rt_required
+def cctv_monitoring(request):
+    """Halaman Monitoring CCTV khusus Ketua RT (Statis)."""
+    return render(request, 'dashboard_rt/cctv.html')

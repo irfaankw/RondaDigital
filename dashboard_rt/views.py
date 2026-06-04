@@ -5,11 +5,15 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.db import transaction
 from patrol.models import JadwalRonda
-from account.models import UserProfile  # ← tambah import ini
+from account.models import UserProfile, NIKWhitelist
 from .models import ItemPatroli
 from .decorators import rt_required
 from .forms import JadwalRondaForm
+
 import json
+import csv
+import io
+import json as _json
 
 @login_required
 @rt_required
@@ -252,3 +256,177 @@ def jadwal_hapus(request, pk):
     jadwal = get_object_or_404(JadwalRonda, pk=pk, dibuat_oleh=request.user)
     jadwal.delete()
     return JsonResponse({'ok': True, 'pesan': 'Jadwal berhasil dihapus.'})
+
+from django.views.decorators.http import require_POST  # sudah ada
+from account.models import UserProfile  # sudah ada
+
+@login_required
+@rt_required
+def verifikasi_warga(request):
+    """Halaman daftar warga menunggu/sudah verifikasi."""
+    semua_profil = (
+        UserProfile.objects
+        .exclude(submission_status='draft')
+        .select_related('user')
+        .order_by('-created_at')
+    )
+
+    # Hitung badge notif (menunggu)
+    jumlah_menunggu = semua_profil.filter(submission_status='pending').count()
+
+    context = {
+        'semua_profil'   : semua_profil,
+        'jumlah_menunggu': jumlah_menunggu,
+    }
+    return render(request, 'dashboard_rt/verifikasi_warga.html', context)
+
+@login_required
+@rt_required
+@require_POST
+def verifikasi_aksi(request, pk):
+    """AJAX — Setujui atau tolak verifikasi warga."""
+    import json
+    profile = get_object_or_404(UserProfile, pk=pk)
+    try:
+        data   = json.loads(request.body)
+        aksi   = data.get('aksi')  # 'setujui' | 'tolak' | 'tinjau_ulang'
+
+        if aksi == 'setujui':
+            profile.submission_status = 'verified'
+            profile.is_verified       = True
+        elif aksi == 'tolak':
+            profile.submission_status = 'pending'
+            profile.is_verified       = False
+        elif aksi == 'tinjau_ulang':
+            profile.submission_status = 'pending'
+            profile.is_verified       = False
+        else:
+            return JsonResponse({'ok': False, 'pesan': 'Aksi tidak valid.'})
+
+        profile.save(update_fields=['submission_status', 'is_verified'])
+        return JsonResponse({'ok': True})
+
+    except Exception as e:
+        return JsonResponse({'ok': False, 'pesan': str(e)})
+    
+@login_required
+@rt_required
+def verifikasi_warga(request):
+    """Halaman daftar warga menunggu/sudah verifikasi."""
+    semua_profil = (
+        UserProfile.objects
+        .exclude(submission_status='draft')
+        .select_related('user')
+        .order_by('-created_at')
+    )
+
+    jumlah_menunggu = semua_profil.filter(submission_status='pending').count()
+
+    # Kirim daftar NIK yang sudah ada di whitelist → untuk cek duplikat di JS
+    existing_niks = list(NIKWhitelist.objects.values_list('nik', flat=True))
+
+    context = {
+        'semua_profil'    : semua_profil,
+        'jumlah_menunggu' : jumlah_menunggu,
+        'existing_niks_json': _json.dumps(existing_niks),
+    }
+    return render(request, 'dashboard_rt/verifikasi_warga.html', context)
+
+
+############## Upload CSV NIK ##############
+
+@login_required
+@rt_required
+def upload_nik_csv(request):
+    """
+    GET  → Halaman form upload CSV.
+    POST → Proses CSV, bulk-insert NIK ke NIKWhitelist.
+
+    Format CSV yang diharapkan (header baris pertama):
+        nik, nama_lengkap, tanggal_lahir, ...kolom_lain_diabaikan...
+
+    Kolom wajib  : nik
+    Kolom opsional: nama_lengkap (kalau ada, disimpan ke nama_sesuai)
+    Kolom lain   : diabaikan
+    """
+    if request.method == 'GET':
+        return render(request, 'dashboard_rt/upload_nik_csv.html')
+
+    # ── POST ──────────────────────────────────────────────────────────────────
+    csv_file = request.FILES.get('csv_file')
+
+    if not csv_file:
+        return JsonResponse({'ok': False, 'pesan': 'File CSV tidak ditemukan.'})
+
+    if not csv_file.name.endswith('.csv'):
+        return JsonResponse({'ok': False, 'pesan': 'File harus berekstensi .csv'})
+
+    if csv_file.size > 5 * 1024 * 1024:  # maks 5 MB
+        return JsonResponse({'ok': False, 'pesan': 'Ukuran file maksimal 5 MB.'})
+
+    try:
+        raw   = csv_file.read().decode('utf-8-sig')   # utf-8-sig → toleran BOM Excel
+        reader = csv.DictReader(io.StringIO(raw))
+
+        # Normalisasi nama header → lowercase + strip spasi
+        reader.fieldnames = [h.strip().lower() for h in (reader.fieldnames or [])]
+
+        if 'nik' not in reader.fieldnames:
+            return JsonResponse({
+                'ok'   : False,
+                'pesan': 'Kolom "nik" tidak ditemukan. Pastikan baris pertama CSV berisi header.'
+            })
+
+        # ── Kumpulkan data valid ──────────────────────────────────────────────
+        existing_niks = set(NIKWhitelist.objects.values_list('nik', flat=True))
+        to_create     = []
+        duplikat      = []
+        baris_kosong  = 0
+
+        for row in reader:
+            nik  = str(row.get('nik', '') or '').strip()
+            nama = str(row.get('nama_lengkap', '') or '').strip()
+
+            if not nik:
+                baris_kosong += 1
+                continue
+
+            if not nik.isdigit() or len(nik) != 16:
+                # Lewati NIK tidak valid (bukan 16 digit angka)
+                baris_kosong += 1
+                continue
+
+            if nik in existing_niks:
+                duplikat.append(nik)
+                continue
+
+            existing_niks.add(nik)          # cegah duplikat dalam file yang sama
+            to_create.append(
+                NIKWhitelist(nik=nik, nama_sesuai=nama)
+            )
+
+        # ── Bulk insert ───────────────────────────────────────────────────────
+        with transaction.atomic():
+            NIKWhitelist.objects.bulk_create(to_create)
+
+        pesan = f'{len(to_create)} NIK berhasil ditambahkan.'
+        if duplikat:
+            pesan += f' {len(duplikat)} NIK sudah ada (dilewati).'
+        if baris_kosong:
+            pesan += f' {baris_kosong} baris dilewati (kosong/format salah).'
+
+        return JsonResponse({
+            'ok'       : True,
+            'pesan'    : pesan,
+            'ditambah' : len(to_create),
+            'duplikat' : len(duplikat),
+            'dilewati' : baris_kosong,
+        })
+
+    except UnicodeDecodeError:
+        return JsonResponse({
+            'ok'   : False,
+            'pesan': 'Gagal membaca file. Pastikan CSV disimpan dalam format UTF-8.'
+        })
+    except Exception as e:
+        return JsonResponse({'ok': False, 'pesan': f'Terjadi kesalahan: {str(e)}'})

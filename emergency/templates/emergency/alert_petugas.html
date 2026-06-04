@@ -1,0 +1,559 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Monitoring Alert — RondaDigital{% endblock %}
+{% block main_class %}px-4 md:px-8{% endblock %}
+
+{% block content %}
+
+{# ── SVG SYMBOLS ── #}
+<svg class="hidden" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="icon-pencurian" viewBox="0 0 24 24" fill="none">
+    <path stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M5 17a2 2 0 1 0 4 0 2 2 0 0 0-4 0Zm10 0a2 2 0 1 0 4 0 2 2 0 0 0-4 0Z"/>
+    <path stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M7 17H5.5A1.5 1.5 0 0 1 4 15.5v-2L6 9h6l2 3h3l2 2v3h-2m-8 0h6"/>
+    <path stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M12 9V6h2"/>
+  </symbol>
+  <symbol id="icon-kebakaran" viewBox="0 0 24 24" fill="none">
+    <path stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M12 2c0 4-4 5-4 9a4 4 0 0 0 8 0c0-4-4-5-4-9Z"/>
+    <path stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M12 14c0 1.5-1 2.5-1 3.5a1 1 0 0 0 2 0C13 16.5 12 15.5 12 14Z"/>
+  </symbol>
+  <symbol id="icon-medis" viewBox="0 0 24 24" fill="none">
+    <path stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M12 21.593c-5.63-5.539-11-10.297-11-14.402C1 3.403 3.68 1 6.5 1c1.98 0 4.144 1.162 5.5 3.063C13.356 2.162 15.52 1 17.5 1 20.32 1 23 3.403 23 7.191c0 4.105-5.37 8.863-11 14.402Z"/>
+    <path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M12 8v7M8.5 11.5h7"/>
+  </symbol>
+  <symbol id="icon-mencurigakan" viewBox="0 0 24 24" fill="none">
+    <path stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/>
+    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/>
+  </symbol>
+  <symbol id="icon-default" viewBox="0 0 24 24" fill="none">
+    <path stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+  </symbol>
+  <symbol id="icon-shield" viewBox="0 0 24 24" fill="none">
+    <path stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M12 2l8 3v6c0 5-4 9-8 11C8 20 4 16 4 11V5l8-3Z"/>
+    <path stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="m9 12 2 2 4-4"/>
+  </symbol>
+  <symbol id="icon-clock" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+    <path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M12 7v5l3 2"/>
+  </symbol>
+  <symbol id="icon-pin" viewBox="0 0 24 24" fill="none">
+    <path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M12 21s-7-6.686-7-11a7 7 0 1 1 14 0c0 4.314-7 11-7 11Z"/>
+    <circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+  </symbol>
+  <symbol id="icon-bolt" viewBox="0 0 24 24" fill="none">
+    <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+  </symbol>
+  <symbol id="icon-check" viewBox="0 0 24 24" fill="none">
+    <path stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+  </symbol>
+  <symbol id="icon-check-circle" viewBox="0 0 24 24" fill="none">
+    <path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+  </symbol>
+  <symbol id="icon-warning" viewBox="0 0 24 24" fill="none">
+    <path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+  </symbol>
+  <symbol id="icon-spin" viewBox="0 0 24 24" fill="none">
+    <path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+  </symbol>
+  <symbol id="icon-chevron-down" viewBox="0 0 24 24" fill="none">
+    <path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/>
+  </symbol>
+  <symbol id="icon-sound-on" viewBox="0 0 24 24" fill="none">
+    <path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/>
+  </symbol>
+  <symbol id="icon-sound-off" viewBox="0 0 24 24" fill="none">
+    <path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6"/>
+  </symbol>
+  <symbol id="icon-equalizer" viewBox="0 0 24 24" fill="currentColor">
+    <rect x="2"  y="10" width="3" height="8" rx="1"/>
+    <rect x="7"  y="6"  width="3" height="12" rx="1"/>
+    <rect x="12" y="3"  width="3" height="15" rx="1"/>
+    <rect x="17" y="7"  width="3" height="11" rx="1"/>
+  </symbol>
+  <symbol id="icon-x" viewBox="0 0 24 24" fill="none">
+    <path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M18 6L6 18M6 6l12 12"/>
+  </symbol>
+</svg>
+
+{# ── TOAST CONTAINER ── #}
+<div id="toast-container" class="fixed top-20 right-4 z-[9999] flex flex-col gap-2 pointer-events-none" style="max-width:340px;"></div>
+
+{# ── AUDIO ── #}
+<audio id="alert-audio" preload="auto" src="{% static 'assets/sounds/emergency_beep.mp3' %}"></audio>
+
+{# ── MAIN ── #}
+<div class="max-w-5xl mx-auto pt-4 pb-8 md:pt-6">
+
+  {# HEADER #}
+  <div class="flex items-start justify-between mb-4">
+    <div>
+      <h1 class="text-xl md:text-2xl font-bold text-white tracking-tight">Monitor Darurat</h1>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="w-2 h-2 rounded-full bg-red-500 shrink-0 animate-pulse"></span>
+        <span id="header-status" class="text-sm font-semibold text-slate-500">Belum ada laporan warga.</span>
+      </div>
+    </div>
+    <button id="btn-mute" onclick="toggleMute()" title="Mute/unmute notifikasi suara"
+            class="w-10 h-10 rounded-full flex items-center justify-center border transition-all duration-200
+                   bg-[#0d1f35] border-[#1a3a5c] text-slate-400 hover:text-white hover:border-slate-500 active:scale-95">
+      <svg class="w-5 h-5"><use id="icon-mute-use" href="#icon-sound-on"/></svg>
+    </button>
+  </div>
+
+  {# INFO STRIP #}
+  <div class="flex items-center gap-2.5 bg-[#0a1929] border border-[#1a3a5c] rounded-xl px-4 py-2.5 mb-6">
+    <svg class="w-4 h-4 text-cyan-500 shrink-0"><use href="#icon-equalizer"/></svg>
+    <span class="text-slate-400 text-xs">Memantau laporan</span>
+    <span class="text-slate-600 text-xs">·</span>
+    <span class="text-slate-400 text-xs">Pembaruan otomatis tiap 3 detik</span>
+    <span id="realtime-dot" class="w-2 h-2 rounded-full bg-cyan-400 ml-auto shrink-0"></span>
+  </div>
+
+  {# SECTION 1 — PERLU RESPONS #}
+  <div class="mb-5">
+    <div class="flex items-center gap-2 mb-3">
+      <svg class="w-4 h-4 text-red-400 shrink-0"><use href="#icon-warning"/></svg>
+      <span class="text-sm font-bold text-red-400">Perlu Respons (<span id="count-pending">0</span>)</span>
+    </div>
+    <div id="list-pending" class="flex flex-col gap-3"></div>
+    <div id="empty-pending" class="hidden bg-[#0a1929] border border-[#1a3a5c] rounded-2xl">
+      <div class="flex gap-4 p-4 md:p-5 items-center">
+        <div class="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center border bg-slate-500/15 border-slate-500/40 text-slate-600">
+          <svg class="w-5 h-5"><use href="#icon-check-circle"/></svg>
+        </div>
+        <div>
+          <p class="text-slate-400 text-sm font-medium">Tidak ada laporan menunggu</p>
+          <p class="text-slate-600 text-xs mt-0.5">Semua laporan sudah ditangani atau belum ada yang masuk.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# SECTION 2 — SEDANG DIPROSES #}
+  <div class="mb-5">
+    <button onclick="toggleDropdown('diproses')" class="w-full flex items-center gap-2 mb-3 cursor-pointer">
+      <svg class="w-4 h-4 text-amber-400 shrink-0"><use href="#icon-spin"/></svg>
+      <span class="text-sm font-bold text-amber-400">Sedang Diproses (<span id="count-diproses">0</span>)</span>
+      <svg id="chevron-diproses" class="w-4 h-4 text-slate-500 ml-auto transition-transform duration-200 rotate-180">
+        <use href="#icon-chevron-down"/>
+      </svg>
+    </button>
+    <div id="dropdown-diproses" class="overflow-hidden transition-[max-height] duration-300 ease-in-out" style="max-height:9999px;">
+      <div id="list-diproses" class="flex flex-col gap-3"></div>
+      <div id="empty-diproses" class="hidden bg-[#0a1929] border border-[#1a3a5c] rounded-2xl">
+        <div class="flex gap-4 p-4 md:p-5 items-center">
+          <div class="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center border bg-slate-500/15 border-slate-500/40 text-slate-600">
+            <svg class="w-5 h-5"><use href="#icon-spin"/></svg>
+          </div>
+          <div>
+            <p class="text-slate-400 text-sm font-medium">Tidak ada laporan diproses</p>
+            <p class="text-slate-600 text-xs mt-0.5">Laporan yang sedang ditangani petugas akan muncul di sini.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# SECTION 3 — SUDAH SELESAI #}
+  <div class="mb-5">
+    <button onclick="toggleDropdown('selesai')" class="w-full flex items-center gap-2 mb-3 cursor-pointer">
+      <svg class="w-4 h-4 text-emerald-400 shrink-0"><use href="#icon-check-circle"/></svg>
+      <span class="text-sm font-bold text-emerald-400">Sudah Selesai (<span id="count-selesai">0</span>)</span>
+      <span id="stat-selesai" class="hidden items-center gap-1.5 ml-2 text-[11px] text-slate-600 bg-[#0a1929] border border-[#1a3a5c] rounded-lg px-2 py-0.5">
+        <span id="stat-selesai-text"></span>
+      </span>
+      <svg id="chevron-selesai" class="w-4 h-4 text-slate-500 ml-auto transition-transform duration-200">
+        <use href="#icon-chevron-down"/>
+      </svg>
+    </button>
+    <div id="dropdown-selesai" class="overflow-hidden transition-[max-height] duration-300 ease-in-out" style="max-height:0;">
+      <div id="list-selesai" class="flex flex-col gap-3"></div>
+      <div id="empty-selesai" class="hidden bg-[#0a1929] border border-[#1a3a5c] rounded-2xl">
+        <div class="flex gap-4 p-4 md:p-5 items-center">
+          <div class="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center border bg-slate-500/15 border-slate-500/40 text-slate-600">
+            <svg class="w-5 h-5"><use href="#icon-check-circle"/></svg>
+          </div>
+          <div>
+            <p class="text-slate-400 text-sm font-medium">Belum ada laporan selesai</p>
+            <p class="text-slate-600 text-xs mt-0.5">Laporan yang telah ditangani tuntas akan tercatat di sini.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# GLOBAL EMPTY #}
+  <div id="empty-global" class="hidden flex flex-col items-center justify-center py-20 text-center">
+    <div class="w-14 h-14 rounded-2xl bg-[#0d1f35] border border-[#1a3a5c] flex items-center justify-center mb-4 text-slate-600">
+      <svg class="w-7 h-7"><use href="#icon-default"/></svg>
+    </div>
+    <p class="text-slate-300 font-semibold">Semua Aman</p>
+    <p class="text-slate-500 text-sm mt-1">Belum ada laporan darurat masuk.</p>
+  </div>
+
+</div>
+
+{% csrf_token %}
+
+<style>
+  @keyframes blink       { 0%,100%{opacity:1} 50%{opacity:.15} }
+  @keyframes fadeInUp    { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeInSlide { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes pulseRed    { 0%,100%{opacity:1} 50%{opacity:.4} }
+  @keyframes toastBar    { from{width:100%} to{width:0%} }
+
+  #realtime-dot      { animation: blink 1.4s ease-in-out infinite; }
+  .card-enter        { animation: fadeInUp .22s ease forwards; }
+  .toast-enter       { animation: fadeInSlide .25s ease forwards; }
+  .toast-exit        { animation: fadeInSlide .2s ease reverse forwards; }
+  .card-pulse-danger { animation: pulseRed 1.6s ease-in-out infinite; }
+  .toast-progress    { width: 100%; }
+</style>
+
+<script>
+(function () {
+
+  const CSRF    = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  const API_URL = "{% url 'emergency:api_alert' %}";
+  const UPD_URL = id => `/emergency/update/${id}/`;
+
+  let isMuted  = false;
+  let prevIds  = null;
+  const dropState = { diproses: true, selesai: false };
+
+  /* ── Audio ── */
+  const audioEl = document.getElementById('alert-audio');
+  let audioUnlocked = false;
+
+  function unlockAudio() {
+    if (audioUnlocked) return;
+    audioEl.play().then(() => { audioEl.pause(); audioEl.currentTime = 0; audioUnlocked = true; }).catch(() => {});
+  }
+
+  function playSound() {
+    if (isMuted) return;
+    audioEl.currentTime = 0;
+    audioEl.play().catch(e => console.warn('Audio play failed:', e));
+  }
+
+  /* ── Mute toggle ── */
+  window.toggleMute = function () {
+    unlockAudio();
+    isMuted = !isMuted;
+    const use = document.getElementById('icon-mute-use');
+    const btn = document.getElementById('btn-mute');
+    if (isMuted) {
+      use.setAttribute('href', '#icon-sound-off');
+      btn.classList.replace('text-slate-400', 'text-red-400');
+      btn.classList.replace('border-[#1a3a5c]', 'border-red-500/40');
+      btn.classList.replace('bg-[#0d1f35]', 'bg-red-500/10');
+    } else {
+      use.setAttribute('href', '#icon-sound-on');
+      btn.classList.replace('text-red-400', 'text-slate-400');
+      btn.classList.replace('border-red-500/40', 'border-[#1a3a5c]');
+      btn.classList.replace('bg-red-500/10', 'bg-[#0d1f35]');
+    }
+  };
+
+  /* ── Dropdown ── */
+  window.toggleDropdown = function (sec) {
+    dropState[sec] = !dropState[sec];
+    applyDropdown(sec);
+  };
+  function applyDropdown(sec) {
+    const el  = document.getElementById('dropdown-' + sec);
+    const chv = document.getElementById('chevron-'  + sec);
+    el.style.maxHeight  = dropState[sec] ? (el.scrollHeight + 500 + 'px') : '0';
+    chv.style.transform = dropState[sec] ? 'rotate(180deg)' : 'rotate(0deg)';
+  }
+
+  /* ── Toast ── */
+  const toastContainer = document.getElementById('toast-container');
+
+  function showToast(lap) {
+    const catColors = { pencurian:'text-amber-400', kebakaran:'text-red-400', medis:'text-pink-400', mencurigakan:'text-blue-400' };
+    const color = catColors[lap.kategori] || 'text-slate-300';
+    const id = 'toast-' + lap.id + '-' + Date.now();
+    toastContainer.insertAdjacentHTML('beforeend', `
+      <div id="${id}" class="toast-enter pointer-events-auto w-full bg-[#0a1929] border border-red-500/40 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden">
+        <div class="flex items-start gap-3 p-4">
+          <div class="w-8 h-8 rounded-xl bg-red-500/20 border border-red-500/40 flex items-center justify-center shrink-0 mt-0.5">
+            <svg class="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-white text-[13px] font-bold leading-tight">🚨 Alert Baru: <span class="${color}">${lap.kategori_label}</span></p>
+            <p class="text-slate-400 text-[11px] mt-0.5 truncate">${lap.nama_pelapor}${lap.alamat ? ' · ' + lap.alamat : ''}</p>
+          </div>
+          <button onclick="dismissToast('${id}')" class="shrink-0 w-6 h-6 rounded-lg flex items-center justify-center text-slate-500 hover:text-white hover:bg-slate-700 transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="h-0.5 bg-red-500/20"><div class="h-full bg-red-500 toast-progress" style="animation:toastBar 5s linear forwards;"></div></div>
+      </div>`);
+    setTimeout(() => dismissToast(id), 5200);
+  }
+
+  window.dismissToast = function (id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.replace('toast-enter', 'toast-exit');
+    setTimeout(() => el.remove(), 220);
+  };
+
+  /* ── Card helpers ── */
+  const CAT_STYLE = {
+    pencurian:    'bg-amber-500/15 border-amber-500/40 text-amber-400',
+    kebakaran:    'bg-red-500/15 border-red-500/40 text-red-400',
+    medis:        'bg-pink-500/15 border-pink-500/40 text-pink-400',
+    mencurigakan: 'bg-blue-500/15 border-blue-500/40 text-blue-400',
+  };
+  const CAT_ICON = {
+    pencurian: 'icon-pencurian', kebakaran: 'icon-kebakaran',
+    medis: 'icon-medis', mencurigakan: 'icon-mencurigakan',
+  };
+
+  function badge(status) {
+    if (status === 'pending')
+      return `<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-md shrink-0 bg-red-500/15 border border-red-500/50 text-red-400">BARU</span>`;
+    if (status === 'diproses')
+      return `<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-md shrink-0 bg-amber-500/15 border border-amber-500/50 text-amber-400">Diproses</span>`;
+    return `<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-md shrink-0 bg-emerald-500/15 border border-emerald-500/50 text-emerald-400">Selesai</span>`;
+  }
+
+  /* ── Build card (ukuran seragam semua status) ── */
+  function buildCard(lap) {
+    const catStyle = CAT_STYLE[lap.kategori] || 'bg-slate-500/15 border-slate-500/40 text-slate-400';
+    const iconId   = CAT_ICON[lap.kategori]  || 'icon-default';
+
+    const borderClass = lap.status === 'pending'
+      ? 'border-red-500/40 shadow-[0_0_20px_rgba(239,68,68,0.08)]'
+      : lap.status === 'diproses'
+        ? 'border-amber-500/30'
+        : 'border-[#1a3a5c]';
+
+    const pulseClass = lap.status === 'pending' ? 'card-pulse-danger' : '';
+
+    const lokasiHtml = (lap.alamat || lap.maps_url) ? `
+      <span class="text-slate-700">·</span>
+      <span class="flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5 text-slate-600"><use href="#icon-pin"/></svg>
+        ${lap.maps_url
+          ? `<a href="${lap.maps_url}" target="_blank" class="text-cyan-500 hover:text-cyan-300 transition-colors hover:underline">${lap.alamat || 'Lihat di Maps'}</a>`
+          : `<span>${lap.alamat}</span>`}
+      </span>` : '';
+
+    const ditanganiHtml = lap.ditangani_oleh ? `
+      <div class="flex items-center gap-2.5 mt-3 pt-3 border-t border-[#1a3a5c]">
+        <svg class="w-3.5 h-3.5 text-cyan-600 shrink-0"><use href="#icon-shield"/></svg>
+        <span class="text-xs text-slate-500">Ditangani:</span>
+        <span class="text-xs text-slate-200 font-semibold">${lap.ditangani_oleh}</span>
+      </div>` : '';
+
+    let bottomHtml = '';
+    if (lap.status === 'pending') {
+      bottomHtml = `
+        <button onclick="aksi(${lap.id},'proses',this)"
+                class="w-full py-2.5 rounded-xl text-[13px] font-bold text-white mt-3
+                       bg-red-500 hover:bg-red-400 active:scale-[.98] transition-all
+                       flex items-center justify-center gap-2">
+          <svg class="w-4 h-4"><use href="#icon-bolt"/></svg>
+          Tindak Lanjut Sekarang
+        </button>`;
+    } else if (lap.status === 'diproses') {
+      bottomHtml = `
+        ${ditanganiHtml}
+        <button onclick="aksi(${lap.id},'selesai',this)"
+                class="w-full py-2.5 rounded-xl text-[13px] font-bold mt-3
+                       bg-emerald-500/15 border border-emerald-500/40 text-emerald-400
+                       hover:bg-emerald-500/25 active:scale-[.98] transition-all
+                       flex items-center justify-center gap-2">
+          <svg class="w-4 h-4"><use href="#icon-check"/></svg>
+          Tandai Selesai
+        </button>`;
+    } else {
+      bottomHtml = `
+        ${ditanganiHtml}
+        <div class="flex items-center gap-1.5 mt-2.5 text-emerald-400 text-xs font-semibold">
+          <svg class="w-3.5 h-3.5"><use href="#icon-check-circle"/></svg>
+          <span>Laporan telah diselesaikan</span>
+        </div>`;
+    }
+
+    return `
+      <div class="bg-[#0d1f35] border ${borderClass} rounded-xl overflow-hidden transition-all duration-300 card-enter ${pulseClass}"
+           data-id="${lap.id}" data-status="${lap.status}">
+        <div class="flex gap-4 p-4 md:p-5 items-start">
+          <div class="shrink-0 w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center border ${catStyle}">
+            <svg class="w-5 h-5 md:w-6 md:h-6"><use href="#${iconId}"/></svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-3 flex-wrap">
+              <h2 class="text-white font-semibold text-sm md:text-base leading-tight">${lap.kategori_label}</h2>
+              ${badge(lap.status)}
+            </div>
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-xs text-slate-500">
+              <span class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-slate-600"><use href="#icon-clock"/></svg>
+                ${lap.dibuat}
+              </span>
+              <span class="text-slate-700">·</span>
+              <span class="font-medium text-slate-400">${lap.nama_pelapor}</span>
+              ${lokasiHtml}
+            </div>
+            <p class="text-slate-400 text-sm mt-1.5 leading-relaxed line-clamp-2">${lap.deskripsi || '—'}</p>
+            ${bottomHtml}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  /* ── Render group ── */
+  function renderGroup(listId, emptyId, items, sec) {
+    const listEl  = document.getElementById(listId);
+    const emptyEl = document.getElementById(emptyId);
+
+    if (items.length === 0) {
+      listEl.innerHTML = '';
+      emptyEl.classList.remove('hidden');
+    } else {
+      emptyEl.classList.add('hidden');
+
+      const existMap = {};
+      listEl.querySelectorAll('[data-id]').forEach(el => { existMap[el.dataset.id] = el; });
+      const newIdSet = new Set(items.map(l => String(l.id)));
+
+      // Hapus card yg sudah tidak ada
+      Object.keys(existMap).forEach(id => { if (!newIdSet.has(id)) existMap[id].remove(); });
+
+      // Tambah / update card
+      items.forEach(lap => {
+        const idStr = String(lap.id);
+        if (existMap[idStr]) {
+          if (existMap[idStr].dataset.status !== lap.status) {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = buildCard(lap);
+            existMap[idStr].replaceWith(tmp.firstElementChild);
+          }
+        } else {
+          listEl.insertAdjacentHTML('beforeend', buildCard(lap));
+        }
+      });
+
+      // Jaga urutan DOM
+      items.forEach(lap => {
+        const el = listEl.querySelector(`[data-id="${lap.id}"]`);
+        if (el) listEl.appendChild(el);
+      });
+    }
+
+    // Rekalkulasi tinggi dropdown
+    if (sec && dropState[sec]) {
+      const dropEl = document.getElementById('dropdown-' + sec);
+      if (dropEl) dropEl.style.maxHeight = dropEl.scrollHeight + 500 + 'px';
+    }
+  }
+
+  /* ── Render semua ── */
+  function render(data) {
+    const laporan  = data.laporan || [];
+    const pending  = laporan.filter(l => l.status === 'pending');
+    const diproses = laporan.filter(l => l.status === 'diproses');
+    const selesai  = laporan.filter(l => l.status === 'selesai');
+
+    // Counter
+    document.getElementById('count-pending').textContent  = pending.length;
+    document.getElementById('count-diproses').textContent = diproses.length;
+    document.getElementById('count-selesai').textContent  = selesai.length;
+
+    // Header status
+    const hEl = document.getElementById('header-status');
+    if (pending.length === 0) {
+      hEl.textContent = 'Belum ada laporan warga.';
+      hEl.className   = 'text-sm font-semibold text-slate-500';
+    } else {
+      hEl.textContent = `${pending.length} Alert Menunggu · Polling 3 detik`;
+      hEl.className   = 'text-sm font-semibold text-red-400';
+    }
+
+    // Stat ringkasan selesai
+    const statEl   = document.getElementById('stat-selesai');
+    const statText = document.getElementById('stat-selesai-text');
+    if (selesai.length > 0) {
+      const katCount = {};
+      selesai.forEach(l => { katCount[l.kategori_label] = (katCount[l.kategori_label] || 0) + 1; });
+      statText.textContent = Object.entries(katCount).map(([k, v]) => `${v} ${k}`).join(', ');
+      statEl.classList.remove('hidden');
+      statEl.classList.add('inline-flex');
+    } else {
+      statEl.classList.add('hidden');
+      statEl.classList.remove('inline-flex');
+    }
+
+    // Deteksi alert baru → bunyi + toast
+    const currentIds = new Set(laporan.map(l => String(l.id)));
+    if (prevIds !== null) {
+      const newPending = pending.filter(l => !prevIds.has(String(l.id)));
+      if (newPending.length > 0) {
+        playSound();
+        newPending.forEach(lap => showToast(lap));
+      }
+    }
+    prevIds = currentIds;
+
+    // Render cards
+    renderGroup('list-pending',  'empty-pending',  pending,  null);
+    renderGroup('list-diproses', 'empty-diproses', diproses, 'diproses');
+    renderGroup('list-selesai',  'empty-selesai',  selesai,  'selesai');
+
+    // Global empty
+    document.getElementById('empty-global').classList.toggle('hidden', laporan.length > 0);
+  }
+
+  /* ── Fetch polling ── */
+  async function fetchAlert() {
+    try {
+      const res  = await fetch(API_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+      const data = await res.json();
+      if (data.ok) render(data);
+    } catch (e) { console.error('Polling error:', e); }
+  }
+
+  /* ── Aksi tombol (proses / selesai) ── */
+  window.aksi = async function (id, tindakan, btnEl) {
+    unlockAudio();
+    btnEl.disabled      = true;
+    btnEl.style.opacity = '0.5';
+    try {
+      const fd = new FormData();
+      fd.append('csrfmiddlewaretoken', CSRF);
+      fd.append('aksi', tindakan);
+      const res  = await fetch(UPD_URL(id), { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.ok) {
+        await fetchAlert();
+      } else {
+        alert(data.pesan || 'Gagal mengubah status.');
+        btnEl.disabled      = false;
+        btnEl.style.opacity = '1';
+      }
+    } catch (e) {
+      alert('Terjadi kesalahan jaringan.');
+      btnEl.disabled      = false;
+      btnEl.style.opacity = '1';
+    }
+  };
+
+  /* ── Init ── */
+  // Unlock audio saat user pertama kali berinteraksi dengan halaman
+  document.addEventListener('click', unlockAudio, { once: true });
+  document.addEventListener('keydown', unlockAudio, { once: true });
+
+  fetchAlert();
+  setInterval(fetchAlert, 3000);
+
+})();
+</script>
+
+{% endblock %}

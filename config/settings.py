@@ -58,6 +58,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 'account.context_processors.user_profile',
+                'emergency.context_processors.emergency_context',
                 'dashboard_rt.context_processors.alert_notifications',
             ],
         },
@@ -93,7 +94,7 @@ LOGIN_URL = 'account:login_view'
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Makassar"
 
 USE_I18N = True
 

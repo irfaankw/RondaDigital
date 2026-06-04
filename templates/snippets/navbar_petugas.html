@@ -22,7 +22,7 @@
         {# NAV LINKS #}
         <div class="flex items-center gap-1">
 
-            <a href="#"
+            <a href="{% url 'account:home_index' %}"
                class="flex items-center gap-2 px-4 py-[7px] rounded-lg text-sm font-medium no-underline transition-colors duration-150
                       {% if url_name == 'dashboard' or url_name == 'petugas_home' %}text-cyan-400 bg-cyan-400/10{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-700/60{% endif %}">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -51,7 +51,7 @@
 
             {# TOMBOL ALERT #}
             {% if url_name == 'alert' or alert_count > 0 %}
-                <a href="#" class="relative flex items-center gap-2 ml-2.5 px-[22px] py-2 rounded-lg text-sm font-bold tracking-widest text-white
+                <a href="{% url 'emergency:alert_petugas' %}" class="relative flex items-center gap-2 ml-2.5 px-[22px] py-2 rounded-lg text-sm font-bold tracking-widest text-white
                                    bg-orange-600 border border-orange-400/70
                                    shadow-[0_2px_12px_rgba(234,88,12,0.4)]
                                    no-underline transition-all duration-200 hover:bg-orange-500 hover:border-white active:scale-95 z-[1]">
@@ -99,7 +99,7 @@
 
             <div class="w-px h-7 bg-slate-700/60 shrink-0"></div>
 
-            <a href="#" class="flex items-center gap-2.5 px-3.5 py-2 rounded-xl
+            <a href="{% url 'account:profile' %}" class="flex items-center gap-2.5 px-3.5 py-2 rounded-xl
                                bg-slate-800/40 border border-slate-700/50 no-underline
                                transition-colors duration-150 hover:bg-slate-700/50 hover:border-slate-600/80">
                 <div class="w-[34px] h-[34px] rounded-full shrink-0
@@ -130,7 +130,7 @@
     <div class="relative grid grid-cols-5 items-center bg-slate-950/80 backdrop-blur-lg border-t border-slate-800/60 pt-4 pb-5 px-4 shadow-[0_-8px_32px_rgba(0,0,0,0.5)] text-center">
 
         {# ── Dashboard ── #}
-        <a href="#" class="flex flex-col items-center gap-1 transition-colors pt-2
+        <a href="{% url 'account:home_index' %}" class="flex flex-col items-center gap-1 transition-colors pt-2
                            {% if url_name == 'dashboard' or url_name == 'petugas_home' %}text-cyan-400{% else %}text-slate-500 hover:text-slate-400{% endif %}">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/>
@@ -162,7 +162,7 @@
         </a>
 
         {# ── Profil ── #}
-        <a href="#" class="flex flex-col items-center gap-1 transition-colors pt-2
+        <a href="{% url 'account:profile' %}" class="flex flex-col items-center gap-1 transition-colors pt-2
                            {% if url_name == 'profile' %}text-cyan-400{% else %}text-slate-500 hover:text-slate-400{% endif %}">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
@@ -171,7 +171,7 @@
         </a>
 
         {# ── Tombol Utama: ALERT (floating, dinamis) ── #}
-        <a href="#" class="absolute left-1/2 -translate-x-1/2 -top-10 select-none z-50 group">
+        <a href="{% url 'emergency:alert_petugas' %}" class="absolute left-1/2 -translate-x-1/2 -top-10 select-none z-50 group">
             <div class="relative w-24 h-24 flex items-center justify-center">
 
                 {% if url_name == 'alert' or alert_count > 0 %}

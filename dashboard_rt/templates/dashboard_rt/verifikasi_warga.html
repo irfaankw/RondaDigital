@@ -1,0 +1,382 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Verifikasi Warga{% endblock %}
+
+{% block content %}
+<div class="p-6 max-w-7xl mx-auto">
+
+  <!-- Header -->
+  <div class="flex items-start justify-between flex-wrap gap-3 mb-5">
+    <div>
+      <h1 class="text-3xl font-bold text-slate-100 mb-1">Verifikasi Warga</h1>
+      <p class="text-sm text-slate-400">RT {{ request.user.profile.rt }} · {{ request.user.profile.alamat|truncatechars:40 }}</p>
+    </div>
+    <a href="{% url 'dashboard_rt:upload_nik_csv' %}"
+       class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-600 text-white text-sm font-semibold transition-colors whitespace-nowrap">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      Upload CSV NIK
+    </a>
+  </div>
+
+  <!-- Alert -->
+  {% if jumlah_menunggu %}
+  <div class="flex items-center gap-3 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3 mb-5 text-amber-400 text-sm">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+    <span><strong>{{ jumlah_menunggu }} warga</strong> menunggu verifikasi identitas</span>
+  </div>
+  {% endif %}
+
+  <!-- Toolbar -->
+  <div class="flex flex-wrap items-center gap-3 mb-4">
+    <!-- Search -->
+    <div class="relative flex-1 min-w-[200px]">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input id="searchInput" type="text"
+             class="w-full pl-9 pr-3 py-2 bg-white/5 border border-white/10 rounded-xl text-slate-100 text-sm outline-none focus:border-teal-500 placeholder-slate-500 transition-colors"
+             placeholder="Cari nama, NIK, atau alamat...">
+    </div>
+    <!-- Status filter -->
+    <div class="flex gap-2 flex-wrap">
+      <button class="f-btn px-4 py-1.5 rounded-full text-xs font-semibold border border-teal-500 bg-teal-500 text-white transition-all" data-filter="semua">Semua</button>
+      <button class="f-btn px-4 py-1.5 rounded-full text-xs font-semibold border border-white/10 bg-white/5 text-slate-400 hover:border-teal-500 hover:text-teal-400 transition-all" data-filter="pending">Menunggu</button>
+      <button class="f-btn px-4 py-1.5 rounded-full text-xs font-semibold border border-white/10 bg-white/5 text-slate-400 hover:border-teal-500 hover:text-teal-400 transition-all" data-filter="verified">Terverifikasi</button>
+      <button class="f-btn px-4 py-1.5 rounded-full text-xs font-semibold border border-white/10 bg-white/5 text-slate-400 hover:border-teal-500 hover:text-teal-400 transition-all" data-filter="ditolak">Ditolak</button>
+    </div>
+  </div>
+
+  <!-- Date range filter -->
+  <div class="flex items-center gap-2 flex-wrap mb-5">
+    <span class="text-xs text-slate-500 whitespace-nowrap">Filter tanggal bergabung:</span>
+    <input type="date" id="dateFrom"
+           class="px-3 py-1.5 rounded-xl text-xs bg-white/5 border border-white/10 text-slate-100 outline-none focus:border-teal-500 cursor-pointer transition-colors">
+    <span class="text-xs text-slate-500">–</span>
+    <input type="date" id="dateTo"
+           class="px-3 py-1.5 rounded-xl text-xs bg-white/5 border border-white/10 text-slate-100 outline-none focus:border-teal-500 cursor-pointer transition-colors">
+    <button id="btnResetDate"
+            class="hidden px-3 py-1.5 rounded-xl text-xs font-semibold bg-red-500/10 border border-red-500/25 text-red-400 hover:bg-red-500/25 transition-all"
+            onclick="resetDateFilter()">✕ Reset</button>
+  </div>
+
+  <!-- Table -->
+  <div class="overflow-x-auto rounded-xl border border-white/8 scrollbar-thin">
+    <table class="w-full border-collapse min-w-[760px]" id="mainTable">
+      <thead>
+        <tr class="bg-white/[0.04] border-b border-white/8">
+          <th class="px-4 py-3 text-left text-[0.7rem] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Nama / NIK</th>
+          <th class="px-4 py-3 text-left text-[0.7rem] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Alamat</th>
+          <th class="px-4 py-3 text-left text-[0.7rem] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap cursor-pointer hover:text-teal-400 select-none transition-colors"
+              id="thJoin" onclick="toggleSort()">
+            Bergabung <i id="sortIcon" class="sort-icon not-italic ml-1 opacity-50 text-[0.8rem]"></i>
+          </th>
+          <th class="px-4 py-3 text-left text-[0.7rem] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Dokumen</th>
+          <th class="px-4 py-3 text-left text-[0.7rem] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Status</th>
+          <th class="px-4 py-3 text-left text-[0.7rem] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="tBody">
+        {% for profil in semua_profil %}
+        <tr class="warga-row border-b border-white/5 hover:bg-white/[0.025] transition-colors last:border-b-0"
+            data-status="{{ profil.submission_status }}"
+            data-nama="{{ profil.nama_lengkap|lower|default:'' }}"
+            data-nik="{{ profil.nik|default:'' }}"
+            data-alamat="{{ profil.alamat|lower|default:'' }}"
+            data-tgl="{{ profil.created_at|date:'Y-m-d' }}">
+
+          <!-- Nama / NIK -->
+          <td class="px-4 py-3 align-middle">
+            <div class="flex items-center gap-3 min-w-[180px]">
+              {% if profil.foto_profil %}
+              <img src="{{ profil.foto_profil.url }}"
+                   class="w-10 h-10 rounded-full object-cover shrink-0 border border-white/10"
+                   alt="{{ profil.nama_lengkap }}">
+              {% else %}
+              <div class="avatar w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
+                   data-name="{{ profil.nama_lengkap|default:profil.user.username }}">
+                {{ profil.nama_lengkap|default:profil.user.username|slice:":1"|upper }}
+              </div>
+              {% endif %}
+              <div>
+                <div class="text-sm font-semibold text-slate-100">{{ profil.nama_lengkap|default:profil.user.username }}</div>
+                <div class="text-xs text-slate-500 font-mono">{{ profil.nik|default:'-' }}</div>
+              </div>
+            </div>
+          </td>
+
+          <!-- Alamat -->
+          <td class="px-4 py-3 align-middle text-sm text-slate-400 min-w-[130px]">
+            {{ profil.alamat|default:'-'|truncatechars:28 }}
+          </td>
+
+          <!-- Bergabung -->
+          <td class="px-4 py-3 align-middle text-sm text-slate-400 whitespace-nowrap">
+            {{ profil.created_at|date:"d M Y" }}
+          </td>
+
+          <!-- Dokumen -->
+          <td class="px-4 py-3 align-middle">
+            <div class="flex gap-1.5 flex-wrap min-w-[110px]">
+              {% if profil.foto_ktp %}
+              <button class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-teal-500/15 border border-teal-500/35 text-teal-400 hover:bg-teal-500/30 hover:scale-105 transition-all cursor-pointer"
+                      onclick="bukaFoto('{{ profil.foto_ktp.url }}','KTP – {{ profil.nama_lengkap|escapejs }}')">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
+                </svg>KTP
+              </button>
+              {% else %}<span class="text-xs text-slate-600 px-2 py-1">KTP –</span>{% endif %}
+
+              {% if profil.foto_kk %}
+              <button class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-teal-500/15 border border-teal-500/35 text-teal-400 hover:bg-teal-500/30 hover:scale-105 transition-all cursor-pointer"
+                      onclick="bukaFoto('{{ profil.foto_kk.url }}','KK – {{ profil.nama_lengkap|escapejs }}')">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                </svg>KK
+              </button>
+              {% else %}<span class="text-xs text-slate-600 px-2 py-1">KK –</span>{% endif %}
+            </div>
+          </td>
+
+          <!-- Status -->
+          <td class="px-4 py-3 align-middle">
+            {% if profil.submission_status == 'verified' %}
+              <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/12 text-emerald-400 whitespace-nowrap">● Terverifikasi</span>
+            {% elif profil.submission_status == 'pending' %}
+              <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/12 text-amber-400 whitespace-nowrap">● Menunggu</span>
+            {% elif profil.submission_status == 'ditolak' %}
+              <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-red-500/12 text-red-400 whitespace-nowrap">● Ditolak</span>
+            {% else %}
+              <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-slate-500/12 text-slate-500 whitespace-nowrap">● Draft</span>
+            {% endif %}
+          </td>
+
+          <!-- Aksi -->
+          <td class="px-4 py-3 align-middle whitespace-nowrap min-w-[160px]">
+            {% if profil.submission_status == 'verified' %}
+              <span class="text-sm text-emerald-400 font-semibold">Terverifikasi ✓</span>
+            {% elif profil.submission_status == 'pending' %}
+              <button class="px-3 py-1.5 rounded-lg text-xs font-bold bg-teal-700 hover:bg-teal-600 text-white transition-colors mr-1.5 cursor-pointer"
+                      onclick="konfirm({{ profil.pk }},'setujui','{{ profil.nama_lengkap|escapejs }}')">
+                Setujui
+              </button>
+              <button class="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-500/12 border border-red-500/30 text-red-400 hover:bg-red-500/28 transition-all cursor-pointer"
+                      onclick="konfirm({{ profil.pk }},'tolak','{{ profil.nama_lengkap|escapejs }}')">
+                Tolak
+              </button>
+            {% else %}
+              <span class="text-sm text-slate-500">–</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-slate-500 py-10">Belum ada warga terdaftar.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div><!-- /wrap -->
+
+
+<!-- Modal Konfirmasi -->
+<div id="mKonfirm" class="fixed inset-0 z-[9000] bg-black/65 backdrop-blur-sm hidden items-center justify-center p-4">
+  <div class="bg-[#1e293b] border border-white/10 rounded-2xl p-8 max-w-sm w-full text-center animate-[slideUp_0.22s_ease]">
+    <div class="text-5xl mb-2" id="mIcon"></div>
+    <div class="text-base font-bold text-slate-100 mb-1" id="mTitle"></div>
+    <div class="text-sm text-slate-400 mb-6" id="mDesc"></div>
+    <div class="flex gap-2.5">
+      <button class="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-white/7 border border-white/12 text-slate-400 hover:bg-white/13 transition-colors cursor-pointer"
+              onclick="closeModal('mKonfirm')">Batal</button>
+      <button class="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all cursor-pointer"
+              id="mOke">Konfirmasi</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Foto -->
+<div id="mFoto" class="fixed inset-0 z-[9000] bg-black/65 backdrop-blur-sm hidden items-center justify-center p-4"
+     onclick="closeModal('mFoto')">
+  <div class="bg-[#1e293b] border border-white/10 rounded-xl overflow-hidden max-w-[92vw] max-h-[92vh] flex flex-col animate-[slideUp_0.22s_ease]"
+       onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-white/8 font-semibold text-slate-100 text-sm">
+      <span id="mFotoTitle"></span>
+      <button class="bg-transparent border-none text-slate-500 text-lg cursor-pointer px-2 py-1 rounded-md hover:bg-white/8 hover:text-slate-100 transition-all"
+              onclick="closeModal('mFoto')">✕</button>
+    </div>
+    <img id="mFotoImg" src="" alt="Dokumen" class="max-w-full max-h-[calc(92vh-58px)] object-contain block">
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toastWrap" class="fixed bottom-6 right-6 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
+
+<style>
+  @keyframes slideUp { from{transform:translateY(16px);opacity:0} to{transform:translateY(0);opacity:1} }
+  @keyframes tIn  { from{transform:translateX(60px);opacity:0} to{transform:translateX(0);opacity:1} }
+  @keyframes tOut { to  {transform:translateX(60px);opacity:0} }
+  .sort-icon::after { content:'↕'; }
+  .sort-icon.asc::after  { content:'↑'; }
+  .sort-icon.desc::after { content:'↓'; }
+</style>
+
+<script>
+/* ── Avatar colors ── */
+const COLORS = ['#0f766e','#1d4ed8','#7c3aed','#b45309','#be123c','#0369a1','#15803d','#9f1239'];
+document.querySelectorAll('.avatar').forEach(el => {
+  const n = el.dataset.name || '';
+  const i = [...n].reduce((s,c) => s + c.charCodeAt(0), 0) % COLORS.length;
+  el.style.background = COLORS[i];
+});
+
+/* ── Toast ── */
+function toast(msg, ok=true) {
+  const w  = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = `flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm font-medium text-white pointer-events-auto max-w-xs shadow-2xl ${ok ? 'bg-gradient-to-br from-emerald-950 to-emerald-900 border-l-4 border-emerald-400' : 'bg-gradient-to-br from-red-950 to-red-900 border-l-4 border-red-400'}`;
+  el.style.animation = 'tIn .28s ease';
+  el.innerHTML = `<span class="text-lg">${ok?'✅':'❌'}</span><span>${msg}</span>`;
+  w.appendChild(el);
+  setTimeout(() => { el.style.animation='tOut .28s ease forwards'; setTimeout(()=>el.remove(),300); }, 3200);
+}
+
+/* ── Modal helpers ── */
+function openModal(id) {
+  const el = document.getElementById(id);
+  el.classList.remove('hidden');
+  el.classList.add('flex');
+}
+function closeModal(id) {
+  const el = document.getElementById(id);
+  el.classList.add('hidden');
+  el.classList.remove('flex');
+}
+
+/* ── Buka foto ── */
+function bukaFoto(url, judul) {
+  document.getElementById('mFotoTitle').textContent = judul;
+  document.getElementById('mFotoImg').src = url;
+  openModal('mFoto');
+}
+
+/* ── Konfirmasi aksi ── */
+const CSRF = '{{ csrf_token }}';
+const URL_TMPL = "{% url 'dashboard_rt:verifikasi_aksi' pk=0 %}";
+let _pending = null;
+
+function konfirm(pk, aksi, nama) {
+  document.getElementById('mIcon').textContent  = aksi==='setujui' ? '✅' : '🚫';
+  document.getElementById('mTitle').textContent = aksi==='setujui' ? 'Setujui Verifikasi?' : 'Tolak Verifikasi?';
+  document.getElementById('mDesc').textContent  = aksi==='setujui'
+    ? `Kamu akan memverifikasi identitas ${nama}.`
+    : `Verifikasi ${nama} akan ditolak.`;
+
+  const oke = document.getElementById('mOke');
+  oke.textContent = aksi==='setujui' ? 'Ya, Setujui' : 'Ya, Tolak';
+  oke.className = `flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all cursor-pointer ${aksi==='setujui' ? 'bg-teal-700 hover:bg-teal-600' : 'bg-red-500 hover:bg-red-400'}`;
+
+  _pending = { pk, aksi };
+  const clone = oke.cloneNode(true);
+  oke.parentNode.replaceChild(clone, oke);
+  clone.addEventListener('click', doAksi);
+
+  openModal('mKonfirm');
+}
+
+async function doAksi() {
+  if (!_pending) return;
+  const { pk, aksi } = _pending;
+  closeModal('mKonfirm');
+  _pending = null;
+
+  try {
+    const res  = await fetch(URL_TMPL.replace('/0/', `/${pk}/`), {
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-CSRFToken':CSRF},
+      body:JSON.stringify({ aksi }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      toast(aksi==='setujui' ? 'Warga berhasil diverifikasi.' : 'Verifikasi ditolak.');
+      setTimeout(() => location.reload(), 1300);
+    } else {
+      toast(data.pesan || 'Terjadi kesalahan.', false);
+    }
+  } catch { toast('Gagal menghubungi server.', false); }
+}
+
+/* ── Filter status ── */
+document.querySelectorAll('.f-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.f-btn').forEach(b => {
+      b.className = 'f-btn px-4 py-1.5 rounded-full text-xs font-semibold border border-white/10 bg-white/5 text-slate-400 hover:border-teal-500 hover:text-teal-400 transition-all';
+    });
+    btn.className = 'f-btn px-4 py-1.5 rounded-full text-xs font-semibold border border-teal-500 bg-teal-500 text-white transition-all';
+    applyFilters();
+  });
+});
+
+/* ── Search ── */
+document.getElementById('searchInput').addEventListener('input', applyFilters);
+
+/* ── Date filter ── */
+document.getElementById('dateFrom').addEventListener('change', applyFilters);
+document.getElementById('dateTo').addEventListener('change', applyFilters);
+
+function resetDateFilter() {
+  document.getElementById('dateFrom').value = '';
+  document.getElementById('dateTo').value   = '';
+  document.getElementById('btnResetDate').classList.add('hidden');
+  applyFilters();
+}
+
+function applyFilters() {
+  const q      = document.getElementById('searchInput').value.toLowerCase();
+  const filter = document.querySelector('.f-btn.border-teal-500.bg-teal-500')?.dataset.filter || 'semua';
+  const from   = document.getElementById('dateFrom').value;
+  const to     = document.getElementById('dateTo').value;
+
+  document.getElementById('btnResetDate').classList.toggle('hidden', !(from || to));
+  document.getElementById('btnResetDate').classList.toggle('inline-block', !!(from || to));
+
+  document.querySelectorAll('.warga-row').forEach(row => {
+    const statusOk = filter === 'semua' || row.dataset.status === filter;
+    const teksOk   = !q || [row.dataset.nama, row.dataset.nik, row.dataset.alamat].some(v => v.includes(q));
+    const tgl      = row.dataset.tgl;
+    const dateOk   = (!from || tgl >= from) && (!to || tgl <= to);
+    row.style.display = (statusOk && teksOk && dateOk) ? '' : 'none';
+  });
+}
+
+/* ── Sort bergabung ── */
+let sortDir = 0;
+function toggleSort() {
+  sortDir = sortDir === 1 ? -1 : 1;
+  const icon = document.getElementById('sortIcon');
+  icon.className = 'sort-icon not-italic ml-1 opacity-50 text-[0.8rem] ' + (sortDir === 1 ? 'asc' : 'desc');
+
+  const tbody = document.getElementById('tBody');
+  const rows  = Array.from(tbody.querySelectorAll('.warga-row'));
+  rows.sort((a, b) => {
+    const da = a.dataset.tgl, db = b.dataset.tgl;
+    return sortDir * (da < db ? -1 : da > db ? 1 : 0);
+  });
+  rows.forEach(r => tbody.appendChild(r));
+}
+
+/* ── Tutup modal klik luar (konfirm) ── */
+document.getElementById('mKonfirm').addEventListener('click', function(e){
+  if (e.target === this) closeModal('mKonfirm');
+});
+</script>
+
+{% endblock content%}

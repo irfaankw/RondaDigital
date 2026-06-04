@@ -20,14 +20,13 @@
     <div class="absolute inset-0 grid-bg pointer-events-none z-0"></div>
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[radial-gradient(circle_at_50%_50%,rgba(0,242,254,0.06)_0%,transparent_70%)] pointer-events-none z-0"></div>
 
-    {% if user.is_authenticated and user_profile %}
-        {% if user_profile.get_active_role == 'PETUGAS' %}
-            {% include 'snippets/navbar_petugas.html' %}
-        {% else %}
-            {% include 'snippets/navbar_warga.html' %}
-        {% endif %}
+    {% if user_profile.role == 'RT' %}
+        {% include 'snippets/navbar_rt.html' %}
+    {% elif user_profile.role == 'PETUGAS' %}
+        {% include 'snippets/navbar_petugas.html' %}
+    {% elif user_profile.role == 'WARGA' %}
+        {% include 'snippets/navbar_warga.html' %}
     {% endif %}
-
 
     <main class="flex-grow relative z-10 w-full md:pt-[68px] md:pb-0 pt-0 pb-24 {% block main_class %}{% endblock main_class %}">
         {% block content %}{% endblock content %}

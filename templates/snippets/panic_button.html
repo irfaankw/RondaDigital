@@ -1,0 +1,429 @@
+{% load static %}
+
+{# OVERLAY #}
+<div id="panik-overlay"
+     onclick="tutupPanik()"
+     class="fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-150">
+</div>
+
+{# PANEL UTAMA #}
+<div id="panik-panel"
+     class="fixed z-[100]
+            bottom-0 left-0 right-0
+            lg:bottom-auto lg:left-1/2 lg:top-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 lg:w-[480px]
+            bg-[#0f1623] border border-slate-700/60 rounded-t-3xl lg:rounded-2xl
+            shadow-2xl transition-transform duration-150 ease-out
+            translate-y-full lg:translate-y-[-40%] lg:opacity-0 lg:scale-95 hidden">
+
+  <div class="flex justify-center pt-3 pb-1 lg:hidden">
+    <div class="w-10 h-1 rounded-full bg-slate-600"></div>
+  </div>
+
+  <div class="px-5 pt-3 pb-2 lg:pt-6 lg:px-6">
+    <div class="flex items-start justify-between mb-1">
+      <div>
+        <p class="text-[11px] font-bold text-rose-500 uppercase tracking-widest flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse inline-block"></span>
+          Tombol Panik
+        </p>
+        <h2 id="panik-judul" class="text-xl font-bold text-slate-100 mt-0.5">Pilih Jenis Darurat</h2>
+        <p id="panik-sub" class="text-slate-500 text-xs mt-0.5">Pilih satu kategori lalu tekan kirim</p>
+      </div>
+      <button onclick="tutupPanik()" class="text-slate-500 hover:text-slate-150 transition-colors mt-1">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  {# Grid Kategori #}
+  <div id="panik-grid" class="grid grid-cols-2 gap-3 px-5 pb-3">
+    {% for val, label, sub, icon in kategori_list %}
+    <button type="button"
+            onclick="pilihKategori('{{ val }}')"
+            data-val="{{ val }}"
+            class="kategori-btn relative flex flex-col items-center justify-center gap-2 p-4 rounded-2xl
+                   border-2 border-slate-700/50 bg-slate-800/40
+                   hover:border-rose-500/60 hover:bg-rose-950/20
+                   transition-all duration-200 text-center group">
+      <span class="text-2xl">{{ icon }}</span>
+      <span class="text-sm font-semibold text-slate-200 group-hover:text-rose-150 transition-colors">{{ label }}</span>
+      <span class="text-[11px] text-slate-500">{{ sub }}</span>
+      <span class="check-icon absolute top-2 right-2 w-5 h-5 rounded-full bg-rose-500 items-center justify-center hidden">
+        <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+        </svg>
+      </span>
+    </button>
+    {% endfor %}
+  </div>
+
+  {# Deskripsi #}
+  <div id="panik-deskripsi-wrap" class="px-5 mb-3">
+    <textarea id="input-deskripsi" rows="2"
+              placeholder="Keterangan tambahan... (opsional)"
+              class="w-full px-4 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50
+                     text-slate-200 text-sm placeholder-slate-600 resize-none
+                     focus:outline-none focus:border-rose-500/50 focus:ring-1 focus:ring-rose-500/20
+                     transition-colors"></textarea>
+  </div>
+
+  {# Warning — disembunyikan saat read-only #}
+  <div id="panik-warning" class="mx-5 mb-3 px-4 py-2.5 rounded-xl bg-rose-950/30 border border-rose-900/50 flex items-start gap-2">
+    <svg class="w-4 h-4 text-rose-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+    </svg>
+    <p class="text-[11px] text-rose-400">Laporan palsu dapat dikenakan sanksi. Gunakan hanya dalam keadaan darurat nyata.</p>
+  </div>
+
+  {# Info box — muncul saat diproses #}
+  <div id="panik-info-box" class="mx-5 mb-3 px-4 py-3 rounded-xl bg-amber-950/30 border border-amber-700/50 hidden">
+    <div class="flex items-start gap-2">
+      <span class="text-lg">⚡</span>
+      <div>
+        <p class="text-amber-150 text-sm font-semibold" id="panik-info-title"></p>
+        <p class="text-amber-400/80 text-xs mt-0.5" id="panik-info-body"></p>
+      </div>
+    </div>
+  </div>
+
+  {# Tombol Kirim #}
+  <div class="px-5 pb-6 lg:pb-5">
+    <button id="btn-kirim-panik"
+            onclick="kirimPanik()"
+            disabled
+            class="w-full py-3.5 rounded-2xl font-bold text-sm transition-all duration-200
+                   bg-slate-700/50 text-slate-500 cursor-not-allowed
+                   flex items-center justify-center gap-2">
+      <svg id="btn-kirim-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/>
+      </svg>
+      <span id="btn-kirim-label">Pilih Jenis Darurat</span>
+    </button>
+  </div>
+</div>
+
+{# SUCCESS STATE #}
+<div id="panik-success"
+     class="fixed z-[101]
+            bottom-0 left-0 right-0
+            lg:bottom-auto lg:left-1/2 lg:top-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 lg:w-[480px]
+            bg-[#0f1623] border border-slate-700/60 rounded-t-3xl lg:rounded-2xl
+            shadow-2xl transition-transform duration-150 ease-out
+            translate-y-full lg:translate-y-[-40%] lg:opacity-0 lg:scale-95 hidden">
+  <div class="flex justify-center pt-3 pb-1 lg:hidden">
+    <div class="w-10 h-1 rounded-full bg-slate-600"></div>
+  </div>
+  <div class="px-5 py-10 flex flex-col items-center text-center">
+    <div id="success-icon-wrap" class="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mb-4">
+      <svg class="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+      </svg>
+    </div>
+    <h3 id="success-judul" class="text-lg font-bold text-slate-100 mb-1">Laporan Terkirim</h3>
+    <p id="success-body" class="text-slate-400 text-sm mb-6">Petugas akan segera merespons. Tetap tenang.</p>
+    <button onclick="tutupPanik()" class="px-8 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium transition-colors">
+      Tutup
+    </button>
+  </div>
+</div>
+
+<script>
+(function() {
+  // ── State ──
+  var STATE = 'kosong'; // kosong | pending | diproses
+  var kategoriDipilih = null;
+  var pendingId       = null;
+  var gpsLat          = null;
+  var gpsLng          = null;
+
+  var isDesktop = function() { return window.innerWidth >= 1024; };
+
+  // ── Animasi ──
+  function animasiMasuk(el) {
+    el.classList.remove('hidden');
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        if (isDesktop()) {
+          el.classList.remove('lg:translate-y-[-40%]', 'lg:opacity-0', 'lg:scale-95');
+          el.classList.add('lg:translate-y-[-50%]', 'lg:opacity-100', 'lg:scale-100');
+        } else {
+          el.classList.remove('translate-y-full');
+          el.classList.add('translate-y-0');
+        }
+      });
+    });
+  }
+
+  function animasiKeluar(el, cb) {
+    if (isDesktop()) {
+      el.classList.remove('lg:translate-y-[-50%]', 'lg:opacity-100', 'lg:scale-100');
+      el.classList.add('lg:translate-y-[-40%]', 'lg:opacity-0', 'lg:scale-95');
+    } else {
+      el.classList.remove('translate-y-0');
+      el.classList.add('translate-y-full');
+    }
+    if (cb) setTimeout(cb, 150);
+  }
+
+  // ── Render panel berdasarkan state ──
+  function renderState(status, data) {
+    var judul       = document.getElementById('panik-judul');
+    var sub         = document.getElementById('panik-sub');
+    var grid        = document.getElementById('panik-grid');
+    var deskWrap    = document.getElementById('panik-deskripsi-wrap');
+    var warning     = document.getElementById('panik-warning');
+    var infoBox     = document.getElementById('panik-info-box');
+    var inputDesc   = document.getElementById('input-deskripsi');
+
+    // Reset semua ke default dulu
+    grid.querySelectorAll('.kategori-btn').forEach(function(btn) {
+      btn.disabled = false;
+      btn.classList.remove('opacity-40', 'pointer-events-none');
+    });
+    inputDesc.readOnly = false;
+    infoBox.classList.add('hidden');
+    warning.classList.remove('hidden');
+
+    if (status === 'diproses') {
+      STATE = 'diproses';
+
+      judul.textContent = 'Laporan Sedang Diproses';
+      sub.textContent   = 'Petugas sudah dalam perjalanan menuju lokasi kamu.';
+
+      // Disable semua interaksi form
+      grid.querySelectorAll('.kategori-btn').forEach(function(btn) {
+        btn.disabled = true;
+        btn.classList.add('opacity-40', 'pointer-events-none');
+      });
+      inputDesc.readOnly = true;
+      inputDesc.value    = data.deskripsi || '';
+
+      // Pre-select kategori (visual only)
+      if (data.kategori) _highlightKategori(data.kategori);
+
+      // Tampilkan info box
+      document.getElementById('panik-info-title').textContent = 'Ditangani petugas';
+      document.getElementById('panik-info-body').textContent  = 'Laporan kamu sedang diproses. Tombol panik akan aktif kembali setelah petugas menandai selesai.';
+      infoBox.classList.remove('hidden');
+      warning.classList.add('hidden');
+
+      // Tombol kirim → non-aktif dengan label info
+      _setBtnKirim('disabled', 'Sedang Diproses Petugas');
+
+      // Update tombol PANIK di navbar → visual disabled
+      _setNavbarPanikState('diproses');
+
+    } else if (status === 'pending') {
+      STATE     = 'pending';
+      pendingId = data.id;
+
+      judul.textContent = 'Perbarui Laporan Darurat';
+      sub.textContent   = 'Lokasi & deskripsi akan diperbarui dengan data terbaru.';
+
+      // Info box
+      document.getElementById('panik-info-title').textContent = 'Laporan aktif ditemukan';
+      document.getElementById('panik-info-body').textContent  = 'Mengirim ulang akan memperbarui laporan yang sudah ada — bukan membuat baru.';
+      infoBox.classList.remove('hidden');
+
+      // Pre-fill
+      if (data.deskripsi) inputDesc.value = data.deskripsi;
+      if (data.kategori)  _highlightKategori(data.kategori);
+
+      _setBtnKirim('update', 'Perbarui Laporan');
+
+    } else {
+      // kosong / selesai
+      STATE = 'kosong';
+      judul.textContent = 'Pilih Jenis Darurat';
+      sub.textContent   = 'Pilih satu kategori lalu tekan kirim';
+      _setBtnKirim('inactive', 'Pilih Jenis Darurat');
+    }
+  }
+
+  // ── Highlight kategori (tanpa interaksi) ──
+  function _highlightKategori(val) {
+    document.querySelectorAll('.kategori-btn').forEach(function(btn) {
+      var aktif = btn.dataset.val === val;
+      btn.classList.toggle('border-rose-500', aktif);
+      btn.classList.toggle('bg-rose-950/30', aktif);
+      var check = btn.querySelector('.check-icon');
+      check.classList.toggle('hidden', !aktif);
+      check.classList.toggle('flex', aktif);
+    });
+    if (STATE !== 'diproses') kategoriDipilih = val;
+  }
+
+  // ── Set state tombol kirim ──
+  function _setBtnKirim(mode, label) {
+    var btn   = document.getElementById('btn-kirim-panik');
+    var lbl   = document.getElementById('btn-kirim-label');
+
+    // Reset semua class dulu
+    btn.classList.remove(
+      'bg-rose-600', 'hover:bg-rose-500', 'text-white', 'cursor-pointer',
+      'shadow-[0_4px_20px_rgba(239,68,68,0.4)]',
+      'bg-amber-700/60', 'text-amber-200', 'cursor-not-allowed',
+      'bg-slate-700/50', 'text-slate-500'
+    );
+
+    lbl.textContent = label;
+
+    if (mode === 'active' || mode === 'update') {
+      btn.disabled = false;
+      btn.classList.add('bg-rose-600', 'hover:bg-rose-500', 'text-white', 'cursor-pointer', 'shadow-[0_4px_20px_rgba(239,68,68,0.4)]');
+    } else if (mode === 'disabled') {
+      btn.disabled = true;
+      btn.classList.add('bg-amber-700/60', 'text-amber-200', 'cursor-not-allowed');
+    } else {
+      // inactive
+      btn.disabled = true;
+      btn.classList.add('bg-slate-700/50', 'text-slate-500', 'cursor-not-allowed');
+    }
+  }
+
+  // ── Update visual tombol PANIK di navbar & mobile ──
+  function _setNavbarPanikState(status) {
+    // Tambahkan/hapus class pada semua elemen dengan data-panik-trigger
+    document.querySelectorAll('[data-panik-trigger]').forEach(function(el) {
+      if (status === 'diproses') {
+        el.classList.add('opacity-50', 'pointer-events-none');
+      } else {
+        el.classList.remove('opacity-50', 'pointer-events-none');
+      }
+    });
+  }
+
+  // ── Fetch status awal saat buka ──
+  function cekDanBuka() {
+    var overlay = document.getElementById('panik-overlay');
+    var panel   = document.getElementById('panik-panel');
+    document.getElementById('panik-success').classList.add('hidden');
+
+    overlay.classList.remove('hidden');
+    requestAnimationFrame(function() {
+      overlay.classList.remove('opacity-0');
+      overlay.classList.add('opacity-100');
+    });
+
+    mulaiGPS();
+
+    // Reset visual dulu
+    _resetVisualForm();
+
+    fetch('{% url "emergency:cek_pending" %}')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var status = data.ada ? data.status : 'kosong';
+        renderState(status, data.ada ? data : {});
+        animasiMasuk(panel);
+      })
+      .catch(function() {
+        renderState('kosong', {});
+        animasiMasuk(panel);
+      });
+  }
+
+  function _resetVisualForm() {
+    kategoriDipilih = null;
+    pendingId       = null;
+    document.getElementById('input-deskripsi').value = '';
+    document.querySelectorAll('.kategori-btn').forEach(function(btn) {
+      btn.classList.remove('border-rose-500', 'bg-rose-950/30');
+      var check = btn.querySelector('.check-icon');
+      check.classList.add('hidden');
+      check.classList.remove('flex');
+    });
+  }
+
+  function mulaiGPS() {
+    gpsLat = null;
+    gpsLng = null;
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      function(pos) { gpsLat = pos.coords.latitude; gpsLng = pos.coords.longitude; },
+      function() {},
+      { timeout: 8000 }
+    );
+  }
+
+  // ── Public API ──
+  window.bukaPanik = function() {
+    cekDanBuka();
+  };
+
+  window.tutupPanik = function() {
+    var overlay = document.getElementById('panik-overlay');
+    var panel   = document.getElementById('panik-panel');
+    var success = document.getElementById('panik-success');
+
+    overlay.classList.remove('opacity-100');
+    overlay.classList.add('opacity-0');
+    animasiKeluar(panel);
+    animasiKeluar(success);
+
+    setTimeout(function() {
+      overlay.classList.add('hidden');
+      panel.classList.add('hidden');
+      success.classList.add('hidden');
+    }, 150);
+  };
+
+  window.pilihKategori = function(val) {
+    if (STATE === 'diproses') return; // block interaksi
+    kategoriDipilih = val;
+    _highlightKategori(val);
+    // Aktifkan tombol kirim
+    var label = STATE === 'pending' ? 'Perbarui Laporan' : 'Kirim Laporan Darurat';
+    _setBtnKirim('active', label);
+  };
+
+  window.kirimPanik = function() {
+    if (!kategoriDipilih || STATE === 'diproses') return;
+
+    var btn = document.getElementById('btn-kirim-panik');
+    btn.disabled = true;
+    document.getElementById('btn-kirim-label').textContent = 'Mengirim...';
+
+    var formData = new FormData();
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    formData.append('kategori',  kategoriDipilih);
+    formData.append('deskripsi', document.getElementById('input-deskripsi').value.trim());
+    if (gpsLat !== null) formData.append('latitude',  gpsLat);
+    if (gpsLng !== null) formData.append('longitude', gpsLng);
+
+    fetch('{% url "emergency:kirim" %}', { method: 'POST', body: formData })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.ok) {
+          var isPembaruan = STATE === 'pending';
+          var panel   = document.getElementById('panik-panel');
+          var success = document.getElementById('panik-success');
+
+          // Sesuaikan teks success state
+          document.getElementById('success-judul').textContent = isPembaruan ? 'Laporan Diperbarui' : 'Laporan Terkirim';
+          document.getElementById('success-body').textContent  = isPembaruan
+            ? 'Data lokasi & deskripsi berhasil diperbarui. Petugas akan segera merespons.'
+            : 'Petugas akan segera merespons. Tetap tenang.';
+
+          animasiKeluar(panel, function() {
+            panel.classList.add('hidden');
+            animasiMasuk(success);
+          });
+        } else {
+          alert(data.pesan || 'Terjadi kesalahan. Coba lagi.');
+          btn.disabled = false;
+          var label = STATE === 'pending' ? 'Perbarui Laporan' : 'Kirim Laporan Darurat';
+          document.getElementById('btn-kirim-label').textContent = label;
+        }
+      })
+      .catch(function() {
+        alert('Gagal mengirim. Periksa koneksi internet.');
+        btn.disabled = false;
+        document.getElementById('btn-kirim-label').textContent = 'Kirim Laporan Darurat';
+      });
+  };
+
+})();
+</script>

@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Verifikasi Warga — RT {{ rt_pengurus }}{% endblock title %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <div class="border-b border-slate-800 pb-5 mb-6">
+        <h1 class="text-2xl font-bold tracking-tight text-white">Verifikasi Warga</h1>
+        <p class="text-sm text-slate-400 mt-1">Tinjau dan verifikasi identitas warga RT {{ rt_pengurus }}</p>
+    </div>
+
+    <div class="w-full bg-[#040d21]/60 border border-slate-800/80 rounded-xl overflow-hidden backdrop-blur-md">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-slate-800/80 bg-slate-950/40 text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+                        <th class="py-4 px-6">Warga</th>
+                        <th class="py-4 px-6">NIK</th>
+                        <th class="py-4 px-6">RT/RW</th>
+                        <th class="py-4 px-6">Status</th>
+                        <th class="py-4 px-6 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/50 text-sm text-slate-300">
+                    {% for warga in daftar_warga %}
+                    <tr class="hover:bg-slate-900/30 transition-colors" id="row-{{ warga.id }}">
+                        <td class="py-4 px-6 flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-xs">
+                                {{ warga.nama_lengkap|slice:":2"|upper }}
+                            </div>
+                            <div>
+                                <div class="font-semibold text-white">{{ warga.nama_lengkap }}</div>
+                                <div class="text-xs text-slate-500 mt-0.5">{{ warga.alamat|default:"Alamat belum diisi" }}</div>
+                            </div>
+                        </td>
+
+                        <td class="py-4 px-6 font-mono tracking-wide text-slate-400">
+                            {% if warga.nik %}
+                                {{ warga.nik|slice:":4" }}****{{ warga.nik|slice:"12:" }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+
+                        <td class="py-4 px-6 text-slate-400 font-medium">
+                            {{ warga.rt }}/{{ warga.rw|default:"--" }}
+                        </td>
+
+                        <td class="py-4 px-6">
+                            {% if warga.submission_status == 'pending' %}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                    Menunggu
+                                </span>
+                            {% elif warga.submission_status == 'verified' %}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                    Terverifikasi
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                                    Ditolak / Draft
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td class="py-4 px-6 text-center">
+                            <div class="flex items-center justify-center gap-2" id="action-wrapper-{{ warga.id }}">
+                                {% if warga.submission_status == 'pending' %}
+                                    <button onclick="prosesVerifikasi('{{ warga.id }}', 'setuju')" class="w-8 h-8 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-all duration-200" title="Setujui Warga">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                    </button>
+                                    <button onclick="prosesVerifikasi('{{ warga.id }}', 'tolak')" class="w-8 h-8 rounded-lg border border-rose-500/30 bg-rose-500/10 text-rose-400 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all duration-200" title="Tolak Berkas">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                {% else %}
+                                    <span class="text-slate-600">—</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="py-12 text-center text-slate-500 font-medium">
+                            Tidak ada data warga yang terdaftar di wilayah RT {{ rt_pengurus }}.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function prosesVerifikasi(profileId, aksi) {
+    if (!confirm(`Apakah Anda yakin ingin memproses data warga ini?`)) return;
+
+    const url = `/dashboard-rt/verifikasi/${profileId}/aksi/`; // Sesuaikan path prefix dashboard_rt kamu jika berbeda
+    
+    // Ambil CSRF Token dari cookie bawaan Django
+    const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrftoken=')).split('=')[1];
+
+    const formData = new FormData();
+    formData.append('action', aksi);
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.ok) {
+            // Reload halaman secara halus atau ganti baris status secara instan tanpa reload browser
+            window.location.reload();
+        } else {
+            alert('Gagal memproses verifikasi: ' + data.pesan);
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Terjadi kesalahan jaringan sistem.');
+    });
+}
+</script>
+{% endblock content %}

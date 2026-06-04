@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}CCTV Monitoring — RT{% endblock title %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between border-b border-slate-800 pb-5 mb-6">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-white flex items-center gap-3">
+                CCTV Monitoring
+            </h1>
+            <p class="text-sm text-slate-400 mt-1">
+                3/4 kamera online — <span class="font-mono text-[#00f2fe]">Sistem NVR v2.4.1</span>
+            </p>
+        </div>
+        <div class="mt-4 md:mt-0 flex items-center gap-3">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Sistem Stabil
+            </span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <div class="relative aspect-video bg-[#030a16] border border-slate-800 rounded-lg overflow-hidden group hover:border-[#00f2fe]/40 transition-all duration-300">
+            <div class="absolute inset-0 bg-gradient-to-br from-slate-900/40 via-transparent to-slate-950/80 flex items-center justify-center">
+                <div class="w-12 h-12 rounded-full border border-slate-800 flex items-center justify-center bg-slate-950/50 group-hover:scale-110 transition-transform">
+                    <svg class="w-5 h-5 text-slate-500 group-hover:text-[#00f2fe]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                </div>
+            </div>
+            <div class="absolute top-3 left-3 bg-black/70 px-2 py-0.5 text-xs font-medium tracking-wide rounded border border-slate-800">Gang Mawar</div>
+            <div class="absolute top-3 right-3 bg-emerald-500/20 text-emerald-400 text-[10px] uppercase px-1.5 py-0.5 font-bold tracking-wider rounded">Online</div>
+            <div class="absolute bottom-3 left-3 text-[11px] font-mono text-slate-400 bg-black/40 px-1.5 py-0.5 rounded">5/6/2026 03.43.28</div>
+            <div class="absolute bottom-3 right-3 flex items-center gap-1 text-[10px] font-bold text-red-500 bg-red-950/30 border border-red-500/20 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>REC
+            </div>
+        </div>
+
+        <div class="relative aspect-video bg-[#030a16] border border-slate-800 rounded-lg overflow-hidden group hover:border-[#00f2fe]/40 transition-all duration-300">
+            <div class="absolute inset-0 bg-gradient-to-br from-slate-900/40 via-transparent to-slate-950/80 flex items-center justify-center">
+                <div class="w-12 h-12 rounded-full border border-slate-800 flex items-center justify-center bg-slate-950/50 group-hover:scale-110 transition-transform">
+                    <svg class="w-5 h-5 text-slate-500 group-hover:text-[#00f2fe]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                </div>
+            </div>
+            <div class="absolute top-3 left-3 bg-black/70 px-2 py-0.5 text-xs font-medium tracking-wide rounded border border-slate-800">Pos Ronda Utama</div>
+            <div class="absolute top-3 right-3 bg-emerald-500/20 text-emerald-400 text-[10px] uppercase px-1.5 py-0.5 font-bold tracking-wider rounded">Online</div>
+            <div class="absolute bottom-3 left-3 text-[11px] font-mono text-slate-400 bg-black/40 px-1.5 py-0.5 rounded">5/6/2026 03.43.28</div>
+            <div class="absolute bottom-3 right-3 flex items-center gap-1 text-[10px] font-bold text-red-500 bg-red-950/30 border border-red-500/20 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>REC
+            </div>
+        </div>
+
+        <div class="relative aspect-video bg-[#030a16] border border-slate-800 rounded-lg overflow-hidden group hover:border-[#00f2fe]/40 transition-all duration-300">
+            <div class="absolute inset-0 bg-gradient-to-br from-slate-900/40 via-transparent to-slate-950/80 flex items-center justify-center">
+                <div class="w-12 h-12 rounded-full border border-slate-800 flex items-center justify-center bg-slate-950/50 group-hover:scale-110 transition-transform">
+                    <svg class="w-5 h-5 text-slate-500 group-hover:text-[#00f2fe]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                </div>
+            </div>
+            <div class="absolute top-3 left-3 bg-black/70 px-2 py-0.5 text-xs font-medium tracking-wide rounded border border-slate-800">Jalan RT 04</div>
+            <div class="absolute top-3 right-3 bg-emerald-500/20 text-emerald-400 text-[10px] uppercase px-1.5 py-0.5 font-bold tracking-wider rounded">Online</div>
+            <div class="absolute bottom-3 left-3 text-[11px] font-mono text-slate-400 bg-black/40 px-1.5 py-0.5 rounded">5/6/2026 03.43.28</div>
+            <div class="absolute bottom-3 right-3 flex items-center gap-1 text-[10px] font-bold text-red-500 bg-red-950/30 border border-red-500/20 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>REC
+            </div>
+        </div>
+
+        <div class="relative aspect-video bg-[#010610] border border-red-950/40 rounded-lg overflow-hidden flex flex-col items-center justify-center">
+            <div class="w-12 h-12 rounded-full bg-red-950/30 border border-red-900/30 flex items-center justify-center text-red-500/70 mb-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+            </div>
+            <div class="text-sm font-bold uppercase tracking-wider text-red-500/80">Offline</div>
+            <div class="text-xs text-slate-500 mt-0.5">Parkir Bersama</div>
+        </div>
+
+    </div>
+</div>
+{% endblock content %}

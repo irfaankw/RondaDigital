@@ -15,4 +15,7 @@ urlpatterns = [
     
     # Menu 4: Halaman Absensi & Shift (Kode yang kita buat sebelumnya)
     path('shift/', views.petugas_shift, name='petugas_shift'),
+
+    #Menu 5: Halaman untuk menyimpan absensi petugas
+    path('shift/simpan/', views.simpan_absensi,   name='simpan_absensi'),
 ]

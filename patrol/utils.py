@@ -1,38 +1,21 @@
 import math
 
-# ============================================================
-# Koordinat tetap pos ronda RT
-# ============================================================
 POS_RONDA_LATITUDE  = -0.474271
 POS_RONDA_LONGITUDE = 117.140290
-RADIUS_ABSEN_METER  = 1000  # meter
+RADIUS_ABSEN_METER  = 4000
+
 
 def hitung_jarak_meter(lat1, lon1, lat2, lon2):
-    """
-    Hitung jarak antara dua titik koordinat GPS
-    menggunakan formula Haversine.
-    Hasilnya dalam satuan meter.
-    """
-    R = 6_371_000  # Radius bumi dalam meter
-
+    R    = 6_371_000
     phi1 = math.radians(lat1)
     phi2 = math.radians(lat2)
     dphi = math.radians(lat2 - lat1)
-    dlambda = math.radians(lon2 - lon1)
-
-    a = (math.sin(dphi / 2) ** 2
-         + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2)
-
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-
-    return R * c  # jarak dalam meter
+    dlam = math.radians(lon2 - lon1)
+    a    = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
 def validasi_lokasi(latitude, longitude):
-    """
-    Cek apakah koordinat masuk dalam radius pos ronda.
-    Return: (is_valid: bool, jarak: float)
-    """
     jarak = hitung_jarak_meter(
         POS_RONDA_LATITUDE, POS_RONDA_LONGITUDE,
         float(latitude), float(longitude)

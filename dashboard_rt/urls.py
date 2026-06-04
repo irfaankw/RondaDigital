@@ -19,4 +19,6 @@ urlpatterns = [
 
     # ── Upload NIK CSV (baru) ─────────────────────────────────────────────────
     path('upload-nik-csv/', views.upload_nik_csv, name='upload_nik_csv'),
+
+    path('cctv/',                   views.cctv_monitoring, name='cctv'),
 ]

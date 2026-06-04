@@ -20,6 +20,12 @@ import json as _json
 def dashboard(request):
     return render(request, 'dashboard_rt/dashboard.html')
 
+@login_required
+@rt_required
+def cctv_monitoring(request):
+    """Halaman Monitoring CCTV khusus Ketua RT (Statis)."""
+    return render(request, 'dashboard_rt/cctv.html')
+
 
 @login_required
 @rt_required

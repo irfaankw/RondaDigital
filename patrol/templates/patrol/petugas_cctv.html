@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Monitoring CCTV - RondaDigital{% endblock title %}
+
+{% block content %}
+<div class="max-w-md md:max-w-6xl mx-auto px-4 py-6 space-y-5 mb-20">
+
+    <div class="flex justify-between items-center border-b border-slate-800/40 pb-3">
+        <div class="space-y-0.5">
+            <h1 class="text-xl md:text-2xl font-black text-white tracking-wide">Monitoring CCTV</h1>
+            <p class="text-xs font-semibold text-slate-400">3/4 kamera aktif</p>
+        </div>
+        <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-950/60 border border-emerald-800/50">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">LIVE</span>
+            </div>
+            <button class="w-7 h-7 rounded-lg bg-slate-800/80 border border-slate-700/60 flex items-center justify-center text-slate-300 hover:text-white transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.253 8H18" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="bg-[#0b172a] border border-slate-800/80 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center space-y-3 md:space-y-0 md:space-x-6 shadow-md">
+        <div class="p-2.5 rounded-lg bg-cyan-950/40 border border-cyan-800/30 text-cyan-400 self-start md:self-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+        </div>
+        <div class="grid grid-cols-3 gap-x-4 md:gap-x-12 text-xs flex-1 w-full">
+            <div>
+                <p class="text-[10px] text-slate-400 font-medium">Sistem Utama</p>
+                <p class="font-bold text-slate-200 md:text-sm mt-0.5">NVR v2.4.1</p>
+            </div>
+            <div>
+                <p class="text-[10px] text-slate-400 font-medium">Penyimpanan</p>
+                <p class="font-bold text-slate-200 md:text-sm mt-0.5">78% Tersisa</p>
+            </div>
+            <div>
+                <p class="text-[10px] text-slate-400 font-medium">Resolusi Feed</p>
+                <p class="font-bold text-slate-200 md:text-sm mt-0.5">1080p Full HD</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        
+        <div class="bg-[#0b172a] border border-slate-800 rounded-xl overflow-hidden shadow-md flex flex-col justify-between aspect-[4/3] p-3 relative group hover:border-slate-700 transition">
+            <div class="absolute inset-0 bg-[#050c18] opacity-90 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:10px_10px] -z-10"></div>
+            
+            <div class="flex justify-between items-start w-full relative z-10">
+                <span class="text-[10px] md:text-xs font-bold text-slate-200 bg-black/50 px-2 py-0.5 rounded backdrop-blur-sm">Gang Mawar</span>
+                <div class="flex flex-col items-end space-y-1">
+                    <span class="w-4 h-4 rounded bg-emerald-950/80 border border-emerald-500/30 flex items-center justify-center text-[8px] text-emerald-400">⚡</span>
+                    <div class="flex items-center space-x-1 bg-black/50 px-1.5 py-0.5 rounded backdrop-blur-sm">
+                        <span class="w-1 h-1 rounded-full bg-red-500 animate-pulse"></span>
+                        <span class="text-[7px] md:text-[8px] text-red-400 font-black tracking-wider">REC</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-between items-center w-full relative z-10 mt-auto">
+                <span class="text-[8px] md:text-[9px] font-mono text-slate-400">02/06/26 08.07.30</span>
+                <button class="text-slate-500 hover:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4h4M16 4h4v4M16 16h4v4h-4M4 16v4h4" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-[#0b172a] border border-slate-800 rounded-xl overflow-hidden shadow-md flex flex-col justify-between aspect-[4/3] p-3 relative group hover:border-slate-700 transition">
+            <div class="absolute inset-0 bg-[#050c18] opacity-90 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:10px_10px] -z-10"></div>
+            
+            <div class="flex justify-between items-start w-full relative z-10">
+                <span class="text-[10px] md:text-xs font-bold text-slate-200 bg-black/50 px-2 py-0.5 rounded backdrop-blur-sm">Pos Ronda Utama</span>
+                <div class="flex flex-col items-end space-y-1">
+                    <span class="w-4 h-4 rounded bg-emerald-950/80 border border-emerald-500/30 flex items-center justify-center text-[8px] text-emerald-400">⚡</span>
+                    <div class="flex items-center space-x-1 bg-black/50 px-1.5 py-0.5 rounded backdrop-blur-sm">
+                        <span class="w-1 h-1 rounded-full bg-red-500 animate-pulse"></span>
+                        <span class="text-[7px] md:text-[8px] text-red-400 font-black tracking-wider">REC</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-between items-center w-full relative z-10 mt-auto">
+                <span class="text-[8px] md:text-[9px] font-mono text-slate-400">02/06/26 08.07.30</span>
+                <button class="text-slate-500 hover:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4h4M16 4h4v4M16 16h4v4h-4M4 16v4h4" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-[#0b172a] border border-slate-800 rounded-xl overflow-hidden shadow-md flex flex-col justify-between aspect-[4/3] p-3 relative group hover:border-slate-700 transition">
+            <div class="absolute inset-0 bg-[#050c18] opacity-90 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:10px_10px] -z-10"></div>
+            
+            <div class="flex justify-between items-start w-full relative z-10">
+                <span class="text-[10px] md:text-xs font-bold text-slate-200 bg-black/50 px-2 py-0.5 rounded backdrop-blur-sm">Jalan RT 04</span>
+                <div class="flex flex-col items-end space-y-1">
+                    <span class="w-4 h-4 rounded bg-emerald-950/80 border border-emerald-500/30 flex items-center justify-center text-[8px] text-emerald-400">⚡</span>
+                    <div class="flex items-center space-x-1 bg-black/50 px-1.5 py-0.5 rounded backdrop-blur-sm">
+                        <span class="w-1 h-1 rounded-full bg-red-500 animate-pulse"></span>
+                        <span class="text-[7px] md:text-[8px] text-red-400 font-black tracking-wider">REC</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-between items-center w-full relative z-10 mt-auto">
+                <span class="text-[8px] md:text-[9px] font-mono text-slate-400">02/06/26 08.07.30</span>
+                <button class="text-slate-500 hover:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/xl" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4h4M16 4h4v4M16 16h4v4h-4M4 16v4h4" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-[#111622] border border-slate-800/80 rounded-xl overflow-hidden shadow-md flex flex-col items-center justify-center aspect-[4/3] p-4 text-center relative group hover:border-red-900/30 transition">
+            <div class="text-slate-600 group-hover:text-red-500/40 transition-colors mb-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-3.536 4.978 4.978 0 011.414-3.536m0 0L4.243 4.243M9.9 9.9l1.414 1.414M3 3l18 18" />
+                </svg>
+            </div>
+            <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">OFFLINE</p>
+            <p class="text-[10px] font-bold text-slate-400 mt-0.5">Parkir Bersama</p>
+        </div>
+
+    </div>
+
+</div>
+{% endblock content %}

@@ -9,13 +9,19 @@ from .models import NIKWhitelist, UserProfile
 
 import urllib.parse
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+
+# ─────────────────────────────────────────────────────────────────
+# HELPER FUNCTIONS
+# ─────────────────────────────────────────────────────────────────
 
 def _get_or_create_profile(user):
+    """Ambil atau buat UserProfile untuk user."""
     profile, _ = UserProfile.objects.get_or_create(user=user)
     return profile
 
+
 def _buat_username(nik):
+    """Generate username unik berbasis NIK."""
     base     = f"warga_{nik}"
     username = base
     suffix   = 2
@@ -27,61 +33,74 @@ def _buat_username(nik):
 
 def _get_jadwal_aktif(user):
     """
-    Cari JadwalRonda hari ini untuk user ini yang sedang aktif.
-    Return jadwal jika ada dan masih aktif, None jika tidak.
+    Cari JadwalRonda hari ini untuk user yang sedang berjalan.
+    Return objek jadwal kalau aktif, None kalau tidak ada / belum mulai / sudah selesai.
     """
     from patrol.models import JadwalRonda
     from datetime import date
-    today = date.today()
+
+    today  = date.today()
     jadwal = JadwalRonda.objects.filter(petugas=user, tanggal=today).first()
     if jadwal and jadwal.is_absen_masih_bisa():
         return jadwal
     return None
 
-def _auto_reset_active_role(profile):
-    """
-    Jika user sedang mode PETUGAS tapi shift-nya sudah selesai,
-    reset active_role ke WARGA secara otomatis.
-    Dipanggil saat page load di home_index, profile_view, switch_role_view.
-    """
-    if profile.get_active_role() == 'PETUGAS':
-        from patrol.models import JadwalRonda
-        from datetime import date
-        today  = date.today()
-        jadwal = JadwalRonda.objects.filter(petugas=profile.user, tanggal=today).first()
-        if not jadwal or jadwal.is_shift_selesai():
-            profile.active_role = 'WARGA'
-            profile.save(update_fields=['active_role'])
 
 def _redirect_after_login(user):
-    """Tentukan halaman tujuan setelah login berdasarkan role."""
+    """
+    Tentukan halaman tujuan setelah login berdasarkan role/active_role.
+    Urutan prioritas:
+      1. Admin/superuser → halaman admin Django
+      2. RT → dashboard RT
+      3. Sedang mode PETUGAS → dashboard petugas
+      4. Selainnya → dashboard warga
+    """
     if user.is_staff or user.is_superuser:
         return redirect('/admin/')
+
     profile = _get_or_create_profile(user)
+
     if profile.role == 'RT':
         return redirect('dashboard_rt:dashboard')
-    elif profile.role == 'PETUGAS':
+    elif profile.get_active_role() == 'PETUGAS':
+        # Middleware sudah jalan sebelum view, jadi kalau get_active_role()
+        # masih PETUGAS berarti shift masih aktif
         return redirect('patrol:petugas_home')
     else:
         return redirect('account:home_index')
 
-# ── Views ─────────────────────────────────────────────────────────────────────
+
+# ─────────────────────────────────────────────────────────────────
+# VIEWS
+# ─────────────────────────────────────────────────────────────────
 
 def landing_index(request):
+    """Halaman splash/landing. Kalau sudah login, langsung redirect."""
     if request.user.is_authenticated:
         return _redirect_after_login(request.user)
     return render(request, 'account/splash.html')
 
+
 @login_required
 def home_index(request):
+    """
+    Dashboard warga. Kalau active_role PETUGAS (shift masih jalan),
+    redirect ke dashboard petugas.
+    Middleware sudah handle auto-reset sebelum view ini dipanggil.
+    """
     if request.user.is_staff or request.user.is_superuser:
         return redirect('/admin/')
+
     profile = _get_or_create_profile(request.user)
+
     if profile.get_active_role() == 'PETUGAS':
         return redirect('patrol:petugas_home')
+
     return render(request, 'account/home.html')
 
+
 def login_view(request):
+    """Login dengan NIK + password."""
     if request.user.is_authenticated:
         return _redirect_after_login(request.user)
 
@@ -114,7 +133,9 @@ def login_view(request):
     login(request, user)
     return _redirect_after_login(user)
 
+
 def register_view(request):
+    """Registrasi dengan NIK yang sudah di-whitelist oleh RT."""
     if request.user.is_authenticated:
         return _redirect_after_login(request.user)
 
@@ -142,66 +163,68 @@ def register_view(request):
     profile.nik          = nik
     profile.nama_lengkap = nama
     profile.no_hp        = no_hp
-    profile.is_verified  = True   # NIK sudah lolos whitelist RT = langsung verified
+    profile.is_verified  = True  # NIK sudah lolos whitelist RT
     profile.save()
 
-    # Tandai NIK sudah digunakan agar tidak bisa dipakai daftar ulang
+    # Tandai NIK sudah dipakai supaya tidak bisa daftar ulang
     NIKWhitelist.objects.filter(nik=nik).update(is_used=True)
 
-    # Auto-login setelah registrasi berhasil
+    # Auto-login setelah registrasi
     user = authenticate(request, username=user.username, password=password)
     if user:
         login(request, user)
 
     return redirect('account:home_index')
 
+
 def forgot_password_view(request):
-    """
-    Tampilkan link WhatsApp ke RT dengan pesan otomatis.
-    Nomor WA RT dan template pesan dikonfigurasi di settings.py.
-    """
-    nomor_wa_rt = getattr(settings, 'NOMOR_WA_RT', None)
+    """Tampilkan link WhatsApp ke RT untuk minta reset password."""
+    nomor_wa_rt    = getattr(settings, 'NOMOR_WA_RT', None)
     pesan_template = getattr(
         settings,
         'WA_RESET_PASSWORD_TEXT',
-        'Assalamualaikum Pak RT, saya ingin meminta reset password akun RondaDigital saya. NIK: [isi NIK kamu]. Nama: [isi nama kamu]. Terima kasih.'
+        'Assalamualaikum Pak RT, saya ingin meminta reset password akun RondaDigital saya. '
+        'NIK: [isi NIK kamu]. Nama: [isi nama kamu]. Terima kasih.'
     )
+
     wa_url = None
     if nomor_wa_rt:
-        encoded_pesan = urllib.parse.quote(pesan_template)
-        wa_url = f"https://wa.me/{nomor_wa_rt}?text={encoded_pesan}"
+        wa_url = f"https://wa.me/{nomor_wa_rt}?text={urllib.parse.quote(pesan_template)}"
 
     return render(request, 'account/auth/forgot_password.html', {'wa_url': wa_url})
+
 
 def logout_view(request):
     logout(request)
     return redirect('account:landing_index')
 
+
 @login_required
 def profile_view(request):
-    profile = _get_or_create_profile(request.user)                        
-    petugas = UserProfile.objects.filter(role='PETUGAS', is_verified=True).select_related('user')
-    is_locked = profile.submission_status in ('pending', 'verified')
-    jadwal_aktif = _get_jadwal_aktif(request.user) if profile.role == 'PETUGAS' else None 
+    profile      = _get_or_create_profile(request.user)
+    petugas      = UserProfile.objects.filter(role='PETUGAS', is_verified=True).select_related('user')
+    is_locked    = profile.submission_status in ('pending', 'verified')
 
-    # 1. Handle Upload Foto Profil (Bisa dilakukan kapan saja, meski locked)
+    # jadwal_aktif hanya relevan untuk user yang punya role PETUGAS
+    jadwal_aktif = _get_jadwal_aktif(request.user) if profile.role == 'PETUGAS' else None
+
+    # ── 1. Upload Foto Profil ──────────────────────────────────────
     if request.method == 'POST' and 'upload_foto_profil' in request.POST:
         if 'foto_profil' in request.FILES:
             profile.foto_profil = request.FILES['foto_profil']
             profile.save(update_fields=['foto_profil'])
-            return redirect('account:profile')
+        return redirect('account:profile')
 
-    # 2. Handle Clear Dokumen (Hapus file dari storage & database)
+    # ── 2. Hapus Dokumen ───────────────────────────────────────────
     if request.method == 'POST':
         if 'clear_ktp' in request.POST and profile.foto_ktp:
             profile.foto_ktp.delete(save=True)
             return redirect('account:profile')
-        
         if 'clear_kk' in request.POST and profile.foto_kk:
             profile.foto_kk.delete(save=True)
             return redirect('account:profile')
 
-    # 3. Handle Update Profile Form (Hanya jika belum locked)
+    # ── 3. Update Form Identitas ───────────────────────────────────
     if request.method == 'POST' and not is_locked:
         form = ProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
@@ -209,30 +232,34 @@ def profile_view(request):
             p.submission_status = 'pending'
             p.save()
             return redirect('account:profile')
-    elif request.method == 'POST' and is_locked:
-        form = ProfileForm(instance=profile)
     else:
         form = ProfileForm(instance=profile)
 
-    # Disable semua field di form jika statusnya locked
     if is_locked:
         for field in form.fields.values():
             field.widget.attrs['disabled'] = True
 
-    # 4. Context Preparation
-    nomor_wa_rt = getattr(settings, 'NOMOR_WA_RT', '6282196636162') # Default jika settings kosong
-    pesan_profil = getattr(settings, 'WA_PROFIL_TEXT', 
-                           'Assalamualaikum Pak RT, saya sudah melengkapi profil saya di RondaDigital. Mohon verifikasi data saya. Terima kasih.')
-    
-    wa_url = f"https://wa.me/{nomor_wa_rt}?text={urllib.parse.quote(pesan_profil)}" if profile.submission_status == 'pending' else None
+    # ── 4. Context ─────────────────────────────────────────────────
+    nomor_wa_rt  = getattr(settings, 'NOMOR_WA_RT', '6282196636162')
+    pesan_profil = getattr(
+        settings,
+        'WA_PROFIL_TEXT',
+        'Assalamualaikum Pak RT, saya sudah melengkapi profil saya di RondaDigital. '
+        'Mohon verifikasi data saya. Terima kasih.'
+    )
+    wa_url = (
+        f"https://wa.me/{nomor_wa_rt}?text={urllib.parse.quote(pesan_profil)}"
+        if profile.submission_status == 'pending'
+        else None
+    )
 
-    # Data Readonly untuk ditampilkan di atas form
     readonly_data = [
         {'label': 'Nama Lengkap', 'value': profile.nama_lengkap},
-        {'label': 'NIK', 'value': profile.nik},
-        {'label': 'Nomor HP', 'value': profile.no_hp},
+        {'label': 'NIK',          'value': profile.nik},
+        {'label': 'Nomor HP',     'value': profile.no_hp},
     ]
 
+    # Info jam shift untuk ditampilkan di modal (hanya kalau ada jadwal aktif)
     shift_info = None
     if profile.role == 'PETUGAS' and jadwal_aktif:
         shift_info = {
@@ -241,20 +268,30 @@ def profile_view(request):
         }
 
     return render(request, 'account/profile.html', {
-        'form': form,
-        'profile': profile,
-        'petugas': petugas,
-        'is_locked': is_locked,
-        'wa_url': wa_url,
-        'progress': profile.progress,
-        'step_list': ['Buat Akun', 'Lengkapi Identitas', 'Upload KTP/KK', 'Disetujui RT'],
+        'form'         : form,
+        'profile'      : profile,
+        'petugas'      : petugas,
+        'is_locked'    : is_locked,
+        'wa_url'       : wa_url,
+        'progress'     : profile.progress,
+        'step_list'    : ['Buat Akun', 'Lengkapi Identitas', 'Upload KTP/KK', 'Disetujui RT'],
         'readonly_data': readonly_data,
-        'jadwal_aktif' : jadwal_aktif,  
+        'jadwal_aktif' : jadwal_aktif,
         'shift_info'   : shift_info,
     })
 
+
 @login_required
 def switch_role_view(request):
+    """
+    Endpoint untuk beralih mode antara PETUGAS dan WARGA.
+
+    Aturan:
+    - PETUGAS → WARGA : bisa kapan saja selama shift belum selesai
+                        (middleware akan auto-reset kalau shift sudah selesai)
+    - WARGA → PETUGAS : hanya kalau jadwal shift hari ini sedang aktif
+                        (is_absen_masih_bisa() = True)
+    """
     if request.method != 'POST':
         return redirect('account:profile')
 
@@ -262,20 +299,21 @@ def switch_role_view(request):
     current = profile.get_active_role()
 
     if current == 'PETUGAS':
-        # Petugas → Warga: bisa kapan saja
+        # Kembali ke mode warga — selalu bisa
         profile.active_role = 'WARGA'
         profile.save(update_fields=['active_role'])
         return redirect('account:home_index')
 
     elif current == 'WARGA' and profile.role == 'PETUGAS':
-        # Warga → Petugas: hanya kalau shift sedang aktif
+        # Masuk mode petugas — hanya kalau shift sedang aktif
         jadwal = _get_jadwal_aktif(request.user)
         if jadwal:
             profile.active_role = 'PETUGAS'
             profile.save(update_fields=['active_role'])
             return redirect('patrol:petugas_home')
         else:
-            # Shift belum mulai / sudah selesai → tolak
+            # Shift belum mulai atau sudah selesai — tolak, balik ke profil
             return redirect('account:profile')
 
+    # Fallback
     return redirect('account:profile')

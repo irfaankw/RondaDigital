@@ -5,8 +5,18 @@ from django.utils import timezone
 from django.http import JsonResponse
 from .models import JadwalRonda, AbsensiShift
 from datetime import date
-import json, base64
+import json
+import base64
 from django.core.files.base import ContentFile
+
+#
+# CATATAN PENTING:
+# Jangan pernah tambahkan 'user_profile': {'role': 'PETUGAS'} di context view manapun.
+# user_profile sudah otomatis diinject ke semua template oleh account/context_processors.py
+# Kalau ditimpa dengan dict hardcode, get_active_role() tidak bisa dipanggil
+# dan navbar akan salah.
+#
+
 
 @login_required
 def petugas_dashboard(request):
@@ -16,16 +26,18 @@ def petugas_dashboard(request):
     }
     return render(request, 'patrol/petugas_home.html', context)
 
+
 @login_required
 def petugas_cctv(request):
     context = {
         'cctv_list': [
-            {'id': 1, 'lokasi': 'Gapura Utama RT 01', 'status': 'Online'},
-            {'id': 2, 'lokasi': 'Pertigaan Pos Ronda', 'status': 'Online'},
+            {'id': 1, 'lokasi': 'Gapura Utama RT 01',  'status': 'Online'},
+            {'id': 2, 'lokasi': 'Pertigaan Pos Ronda',  'status': 'Online'},
             {'id': 3, 'lokasi': 'Area Lapangan Warga',  'status': 'Offline'},
         ]
     }
     return render(request, 'patrol/petugas_cctv.html', context)
+
 
 @login_required
 def petugas_alert(request):
@@ -54,10 +66,11 @@ def petugas_alert(request):
                 'tanggal': '20 Mei 2026',
                 'status' : 'selesai',
                 'detail' : 'Helm KYT di atas motor hilang, tapi pelakunya sudah damai.'
-            }
+            },
         ]
     }
     return render(request, 'patrol/alert.html', context)
+
 
 @login_required
 def petugas_shift(request):
@@ -65,7 +78,12 @@ def petugas_shift(request):
     user  = request.user
 
     jadwal_saya  = JadwalRonda.objects.filter(petugas=user, tanggal=today).first()
-    semua_jadwal = JadwalRonda.objects.filter(tanggal=today).select_related('petugas__profile').order_by('jam_mulai')
+    semua_jadwal = (
+        JadwalRonda.objects
+        .filter(tanggal=today)
+        .select_related('petugas__profile')
+        .order_by('jam_mulai')
+    )
 
     sudah_absen  = bool(jadwal_saya and hasattr(jadwal_saya, 'absensi'))
     absensi_saya = jadwal_saya.absensi if sudah_absen else None

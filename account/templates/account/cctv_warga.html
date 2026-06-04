@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-[#060b13] p-4 md:p-6 text-slate-100">
+  
+  <div class="mb-6">
+    <h2 class="text-sm font-bold text-slate-200 tracking-wider">
+        <span class="text-cyan-500 font-black">//</span> CCTV_WARGA
+    </h2>
+    <div class="mt-1 h-px w-20 bg-gradient-to-r from-cyan-500 to-transparent"></div>
+</div>
+
+  <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
+    
+    {% for i in "1234567890"|make_list %}
+    {# Hapus animate-[glitch...] agar kotak tidak goyang #}
+    <div class="bg-[#0d1b2e]/90 border border-[#1e3a5f] rounded-xl overflow-hidden shadow-xl flex flex-col min-h-[200px] relative group">
+      
+      {# Header #}
+      <div class="absolute top-0 w-full p-3 flex items-center justify-between z-10">
+        <span class="bg-black/50 backdrop-blur-sm text-[9px] font-bold text-white px-2 py-1 rounded border border-white/10 uppercase tracking-widest">
+            CAM 0{{ forloop.counter }}
+        </span>
+        <span class="text-[9px] font-extrabold text-white bg-red-600 px-2 py-0.5 rounded animate-pulse">REC</span>
+      </div>
+      
+      {# Area Video (Efek Kamera Rusak/Noise Tetap) #}
+      <div class="flex-grow flex flex-col items-center justify-center bg-[#070f19] relative overflow-hidden">
+        
+        {# Efek Static/Noise - Ini yang menciptakan tampilan "kamera rusak" #}
+        <div class="absolute inset-0 opacity-[0.08] pointer-events-none" 
+             style="background-image: url('https://grainy-gradients.vercel.app/noise.svg');">
+        </div>
+        
+        {# Efek Scanlines (Garis-garis horizontal) #}
+        <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+             style="background: repeating-linear-gradient(0deg, transparent, transparent 2px, #fff 2px, #fff 4px);">
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-slate-700/50 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+      </div>
+
+      {# Footer #}
+      <div class="p-2 flex items-center justify-between bg-black/40 text-[9px] font-bold text-slate-400">
+        <span>LIVE AUDIO OFF</span>
+        <span class="realtime-clock">00:00:00</span>
+      </div>
+      
+    </div>
+    {% endfor %}
+
+  </div>
+</div>
+
+<script>
+    function updateClocks() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-GB');
+        document.querySelectorAll('.realtime-clock').forEach(el => el.textContent = timeString);
+    }
+    setInterval(updateClocks, 1000);
+    updateClocks();
+</script>
+{% endblock %}

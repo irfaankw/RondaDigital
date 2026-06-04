@@ -20,12 +20,6 @@
     <div class="absolute inset-0 grid-bg pointer-events-none z-0"></div>
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[radial-gradient(circle_at_50%_50%,rgba(0,242,254,0.06)_0%,transparent_70%)] pointer-events-none z-0"></div>
 
-    {#
-        Navbar dipilih berdasarkan active_role, BUKAN role permanen.
-        - role permanen (WARGA/PETUGAS) tidak berubah
-        - active_role yang berubah saat switch mode
-        - RT tetap pakai role karena tidak ada switch mode untuk RT
-    #}
     {% if user.is_authenticated and user_profile %}
         {% if user_profile.role == 'RT' %}
             {% include 'snippets/navbar_rt.html' %}

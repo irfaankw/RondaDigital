@@ -3,6 +3,7 @@ boto3==1.43.14
 botocore==1.43.14
 Django==6.0.5
 django-cleanup==9.0.0
+django-pwa==2.0.1
 django-storages==1.14.6
 jmespath==1.1.0
 pillow==12.2.0

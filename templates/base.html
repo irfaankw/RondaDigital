@@ -1,4 +1,6 @@
 {% load static %}
+{% load pwa %}
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -14,6 +16,7 @@
             background-size: 30px 30px;
         }
     </style>
+    {% progressive_web_app_meta %}
 </head>
 <body class="bg-[#020d20] text-slate-100 min-h-screen flex flex-col relative overflow-x-hidden antialiased font-sans">
 

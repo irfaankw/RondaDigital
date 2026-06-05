@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "emergency.apps.EmergencyConfig",
     "patrol.apps.PatrolConfig",
     "storages",
+    "pwa",
     'django_cleanup.apps.CleanupConfig',
 ]
 
@@ -126,6 +127,26 @@ STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 ]
+
+# PWA Settings
+PWA_APP_NAME = 'RondaDigital'
+PWA_APP_DESCRIPTION = "Sistem Keamanan Lingkungan Berbasis Web"
+PWA_APP_THEME_COLOR = '#020d20'
+PWA_APP_BACKGROUND_COLOR = '#020d20'
+PWA_APP_DISPLAY = 'standalone'
+PWA_APP_SCOPE = '/'
+PWA_APP_ORIENTATION = 'portrait'
+PWA_APP_START_URL = '/'
+PWA_APP_STATUS_BAR_COLOR = 'default'
+PWA_APP_ICONS = [
+    {'src': '/static/assets/images/Icon-RondaDigital.png', 'sizes': '160x160'}
+]
+PWA_APP_ICONS_APPLE = [
+    {'src': '/static/assets/images/Icon-RondaDigital.png', 'sizes': '160x160'}
+]
+PWA_APP_SPLASH_SCREEN = []
+PWA_APP_DIR = 'ltr'
+PWA_APP_LANG = 'id-ID'
 
 # Supabase Storage (S3-compatible) - Khusus Media Upload Cloud
 AWS_ACCESS_KEY_ID        = os.getenv("AWS_ACCESS_KEY_ID")

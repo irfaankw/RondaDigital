@@ -1,10 +1,13 @@
 {% load static %}
+{% load pwa %}
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}RondaDigital{% endblock title %}</title>
+    <link rel="icon" type="image/png" href="{% static 'assets/images/Icon-RondaDigital-Navbar.png' %}">
     <link rel="stylesheet" href="{% static 'dist/style.css' %}">
     <style>
         .grid-bg {
@@ -13,6 +16,7 @@
             background-size: 30px 30px;
         }
     </style>
+    {% progressive_web_app_meta %}
 </head>
 <body class="bg-[#020d20] text-slate-100 min-h-screen flex flex-col relative overflow-x-hidden antialiased font-sans">
 

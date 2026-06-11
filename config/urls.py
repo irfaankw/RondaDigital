@@ -6,6 +6,10 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/',      admin.site.urls),
     path('',            include('account.urls',      namespace='account')),
+<<<<<<< HEAD
+=======
+    path('', include('pwa.urls')),
+>>>>>>> 524ca24b4e9a22b70aa44e7202354cbb8b013f39
     path('panel-rt/',   include('dashboard_rt.urls', namespace='dashboard_rt')),
     path('patroli/',    include('patrol.urls',        namespace='patrol')),
     path('emergency/', include('emergency.urls',   namespace='emergency')),

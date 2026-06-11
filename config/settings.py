@@ -1,6 +1,8 @@
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from dotenv import load_dotenv
+import os
 
 load_dotenv()
 
@@ -17,6 +19,15 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG") == "True"
 
 ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'ronda-digital.vercel.app', 
+    'localhost',
+    '127.0.0.1',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.vercel.app',
+]
 
 # Application definition
 
@@ -32,11 +43,13 @@ INSTALLED_APPS = [
     "emergency.apps.EmergencyConfig",
     "patrol.apps.PatrolConfig",
     "storages",
+    "pwa",
     'django_cleanup.apps.CleanupConfig',
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -108,10 +121,36 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images) - Tetap Lokal/Server Deploy
 STATIC_URL = "static/"
+STATIC_URL = "/static/"
 STATICFILES_DIRS = [
     BASE_DIR / 'static' 
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
+
+# PWA Settings
+PWA_APP_NAME = 'RondaDigital'
+PWA_APP_DESCRIPTION = "Sistem Keamanan Lingkungan Berbasis Web"
+PWA_APP_THEME_COLOR = '#020d20'
+PWA_APP_BACKGROUND_COLOR = '#020d20'
+PWA_APP_DISPLAY = 'standalone'
+PWA_APP_SCOPE = '/'
+PWA_APP_ORIENTATION = 'portrait'
+PWA_APP_START_URL = '/'
+PWA_APP_STATUS_BAR_COLOR = 'default'
+PWA_APP_ICONS = [
+    {'src': '/static/assets/images/Icon-RondaDigital.png', 'sizes': '160x160'}
+]
+PWA_APP_ICONS_APPLE = [
+    {'src': '/static/assets/images/Icon-RondaDigital.png', 'sizes': '160x160'}
+]
+PWA_APP_SPLASH_SCREEN = []
+PWA_APP_DIR = 'ltr'
+PWA_APP_LANG = 'id-ID'
 
 # Supabase Storage (S3-compatible) - Khusus Media Upload Cloud
 AWS_ACCESS_KEY_ID        = os.getenv("AWS_ACCESS_KEY_ID")
@@ -138,6 +177,7 @@ STORAGES = {
     },
     "staticfiles": {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage", 
     },
 }
 

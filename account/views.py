@@ -9,7 +9,6 @@ from .models import NIKWhitelist, UserProfile
 
 import urllib.parse
 
-
 # ─────────────────────────────────────────────────────────────────
 # HELPER FUNCTIONS
 # ─────────────────────────────────────────────────────────────────
@@ -133,7 +132,6 @@ def login_view(request):
     login(request, user)
     return _redirect_after_login(user)
 
-
 def register_view(request):
     """Registrasi dengan NIK yang sudah di-whitelist oleh RT."""
     if request.user.is_authenticated:
@@ -159,23 +157,28 @@ def register_view(request):
         last_name  = nama_parts[1] if len(nama_parts) > 1 else '',
     )
 
+    # Ambil rt/rw dari profile RT yang mengelola sistem ini
+    rt_profile = UserProfile.objects.filter(role='RT').first()
+    rt_val     = rt_profile.rt if rt_profile else ''
+    rw_val     = rt_profile.rw if rt_profile else ''
+
     profile              = _get_or_create_profile(user)
     profile.nik          = nik
     profile.nama_lengkap = nama
     profile.no_hp        = no_hp
-    profile.is_verified  = True  # NIK sudah lolos whitelist RT
+    profile.rt           = rt_val
+    profile.rw           = rw_val
+    profile.is_verified  = False
     profile.save()
 
-    # Tandai NIK sudah dipakai supaya tidak bisa daftar ulang
+    # Tandai NIK sudah dipakai
     NIKWhitelist.objects.filter(nik=nik).update(is_used=True)
 
-    # Auto-login setelah registrasi
     user = authenticate(request, username=user.username, password=password)
     if user:
         login(request, user)
 
     return redirect('account:home_index')
-
 
 def forgot_password_view(request):
     """Tampilkan link WhatsApp ke RT untuk minta reset password."""
@@ -254,9 +257,9 @@ def profile_view(request):
     )
 
     readonly_data = [
-        {'label': 'Nama Lengkap', 'value': profile.nama_lengkap},
-        {'label': 'NIK',          'value': profile.nik},
-        {'label': 'Nomor HP',     'value': profile.no_hp},
+        {'label': 'Nama Lengkap', 'value': profile.nama_lengkap or '-'},
+        {'label': 'NIK',          'value': profile.nik          or '-'},
+        {'label': 'Nomor HP',     'value': profile.no_hp        or '-'},
     ]
 
     # Info jam shift untuk ditampilkan di modal (hanya kalau ada jadwal aktif)

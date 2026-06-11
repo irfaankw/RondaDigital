@@ -143,7 +143,7 @@ PWA_APP_ORIENTATION = 'portrait'
 PWA_APP_START_URL = '/'
 PWA_APP_STATUS_BAR_COLOR = 'default'
 PWA_APP_ICONS = [
-    {'src': '/static/assets/images/Icon-RondaDigital.png', 'sizes': '160x160'}
+    {'src': '/static/assets/images/Icon-RondaDigital-navbar.png', 'sizes': '160x160'}
 ]
 PWA_APP_ICONS_APPLE = [
     {'src': '/static/assets/images/Icon-RondaDigital.png', 'sizes': '160x160'}

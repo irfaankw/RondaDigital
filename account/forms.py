@@ -99,9 +99,8 @@ class RegisterForm(forms.Form):
 class ProfileForm(forms.ModelForm):
     """
     Form untuk melengkapi data identitas warga.
-    Field: alamat, tanggal_lahir, pekerjaan, rt, rw,
-           jenis_kelamin, foto_profil, foto_ktp, foto_kk.
-    NIK & no_hp dikunci di view, tidak diproses di sini.
+    RT dan RW tidak dimasukkan — sudah auto-terisi dari NIKWhitelist saat registrasi
+    dan ditampilkan sebagai readonly di halaman profil.
     """
     tanggal_lahir = forms.DateField(
         required=True,
@@ -118,18 +117,6 @@ class ProfileForm(forms.ModelForm):
         required=True,
         label='Pekerjaan',
         error_messages={'required': 'Pekerjaan wajib diisi.'}
-    )
-    rt = forms.CharField(
-        required=True,
-        max_length=10,
-        label='RT',
-        error_messages={'required': 'RT wajib diisi.'}
-    )
-    rw = forms.CharField(
-        required=True,
-        max_length=10,
-        label='RW',
-        error_messages={'required': 'RW wajib diisi.'}
     )
     jenis_kelamin = forms.ChoiceField(
         required=True,
@@ -152,32 +139,14 @@ class ProfileForm(forms.ModelForm):
         model  = UserProfile
         fields = [
             'alamat', 'tanggal_lahir', 'pekerjaan',
-            'rt', 'rw', 'jenis_kelamin',
-            'foto_profil', 'foto_ktp', 'foto_kk',
+            'jenis_kelamin', 'foto_profil', 'foto_ktp', 'foto_kk',
         ]
-        # NIK dan no_hp sengaja tidak dimasukkan karena dikunci setelah registrasi
-
-    def clean_rt(self):
-        """Validasi angka + normalisasi ke 2 digit. '4' → '04'."""
-        rt = self.cleaned_data.get('rt', '').strip()
-        if not rt.isdigit():
-            raise forms.ValidationError('RT hanya boleh berisi angka.')
-        return rt.zfill(2)
-
-    def clean_rw(self):
-        """Validasi angka + normalisasi ke 2 digit. '2' → '02'."""
-        rw = self.cleaned_data.get('rw', '').strip()
-        if not rw.isdigit():
-            raise forms.ValidationError('RW hanya boleh berisi angka.')
-        return rw.zfill(2)
 
     def clean(self):
         cleaned  = super().clean()
         foto_ktp = cleaned.get('foto_ktp')
         foto_kk  = cleaned.get('foto_kk')
 
-        # Cek dokumen yang sudah tersimpan di DB menggunakan .name
-        # agar tidak bergantung pada boolean FieldFile yang tidak reliable
         has_ktp = foto_ktp or (
             self.instance.pk and self.instance.foto_ktp and self.instance.foto_ktp.name
         )
@@ -189,5 +158,4 @@ class ProfileForm(forms.ModelForm):
             raise forms.ValidationError(
                 'Upload minimal salah satu dokumen: Foto KTP atau Foto KK.'
             )
-
         return cleaned

@@ -3,54 +3,35 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta, time
 
+from patrol.models import JadwalRonda
+
 
 class JadwalRondaForm(forms.Form):
-    """
-    Form validasi untuk membuat / mengedit Jadwal Ronda.
-    Dipakai di views.py (jadwal_buat & jadwal_edit) via JSON payload.
-
-    Aturan bisnis:
-    - petugas_ids : list of User PK, minimal 5 maksimal 7
-    - tanggal     : hari ini s/d hari ini + 6 (total 7 hari)
-    - jam_mulai   : harus 21:00
-    - jam_selesai : harus 05:00
-    """
-
     JAM_MULAI_WAJIB   = time(21, 0)
     JAM_SELESAI_WAJIB = time(5, 0)
     MIN_PETUGAS = 5
     MAX_PETUGAS = 7
 
-    # ── Field-field form ─────────────────────────────────────────
-    petugas_ids = forms.CharField()          # akan di-parse jadi list
+    petugas_ids = forms.CharField()
     tanggal     = forms.DateField(input_formats=['%Y-%m-%d'])
     jam_mulai   = forms.TimeField(input_formats=['%H:%M'])
     jam_selesai = forms.TimeField(input_formats=['%H:%M'])
     blok_area   = forms.CharField(max_length=100, required=False)
     catatan_rt  = forms.CharField(required=False)
-    items       = forms.CharField(required=False)   # JSON list string
+    items       = forms.CharField(required=False)
 
-    # ── Validasi per-field ───────────────────────────────────────
+    # Di-set dari view saat mode edit agar validasi tanggal skip jadwal sendiri
+    edit_pk = None
 
     def clean_petugas_ids(self):
-        """
-        Terima list of int (sudah di-parse dari JSON sebelum masuk form).
-        Validasi: tipe, jumlah (5–7), dan semua user exist & terverifikasi.
-        """
-        raw = self.data.get('petugas_ids_list', [])   # di-set manual dari view
+        raw = self.data.get('petugas_ids_list', [])
         if not isinstance(raw, list):
             raise forms.ValidationError('Format petugas tidak valid.')
-
         if len(raw) < self.MIN_PETUGAS:
-            raise forms.ValidationError(
-                f'Minimal {self.MIN_PETUGAS} petugas harus dipilih.'
-            )
+            raise forms.ValidationError(f'Minimal {self.MIN_PETUGAS} petugas harus dipilih.')
         if len(raw) > self.MAX_PETUGAS:
-            raise forms.ValidationError(
-                f'Maksimal {self.MAX_PETUGAS} petugas per jadwal.'
-            )
+            raise forms.ValidationError(f'Maksimal {self.MAX_PETUGAS} petugas per jadwal.')
 
-        # Pastikan semua ID valid dan user terverifikasi
         petugas_qs = User.objects.filter(
             pk__in=raw,
             profile__is_verified=True,
@@ -60,7 +41,6 @@ class JadwalRondaForm(forms.Form):
             raise forms.ValidationError(
                 'Satu atau lebih petugas tidak ditemukan atau belum terverifikasi.'
             )
-
         return list(petugas_qs)
 
     def clean_tanggal(self):
@@ -68,16 +48,40 @@ class JadwalRondaForm(forms.Form):
         if not tanggal:
             return tanggal
 
-        hari_ini   = timezone.localdate()
+        hari_ini    = timezone.localdate()
         batas_akhir = hari_ini + timedelta(days=6)
 
-        if tanggal < hari_ini:
-            raise forms.ValidationError('Tanggal tidak boleh sebelum hari ini.')
-        if tanggal > batas_akhir:
-            raise forms.ValidationError(
-                f'Tanggal maksimal {batas_akhir.strftime("%d/%m/%Y")} '
-                f'(7 hari dari sekarang).'
+        # Mode buat: tanggal harus dalam range hari ini s/d +6
+        # Mode edit: boleh tanggal lama, tapi tetap cek duplikat
+        if self.edit_pk is None:
+            if tanggal < hari_ini:
+                raise forms.ValidationError('Tanggal tidak boleh sebelum hari ini.')
+            if tanggal > batas_akhir:
+                raise forms.ValidationError(
+                    f'Tanggal maksimal {batas_akhir.strftime("%d/%m/%Y")} (7 hari dari sekarang).'
+                )
+
+        # Cek duplikat tanggal untuk RT yang sama
+        dibuat_oleh = self.data.get('dibuat_oleh_user')
+        if dibuat_oleh:
+            qs = JadwalRonda.objects.filter(
+                dibuat_oleh=dibuat_oleh,
+                tanggal=tanggal,
             )
+            # Mode edit: exclude tanggal+jam jadwal yang sedang diedit
+            if self.edit_pk:
+                jadwal_lama = JadwalRonda.objects.filter(pk=self.edit_pk).first()
+                if jadwal_lama:
+                    qs = qs.exclude(
+                        tanggal=jadwal_lama.tanggal,
+                        jam_mulai=jadwal_lama.jam_mulai,
+                        jam_selesai=jadwal_lama.jam_selesai,
+                    )
+            if qs.exists():
+                raise forms.ValidationError(
+                    f'Tanggal {tanggal.strftime("%d/%m/%Y")} sudah ada jadwal ronda. Pilih tanggal lain.'
+                )
+
         return tanggal
 
     def clean_jam_mulai(self):
@@ -96,10 +100,7 @@ class JadwalRondaForm(forms.Form):
             )
         return jam
 
-    # ── Helper: ambil items sebagai list ────────────────────────
-
     def get_items(self):
-        """Return list of item deskripsi (string) yang tidak kosong."""
         raw = self.data.get('items_list', [])
         if isinstance(raw, list):
             return [i.strip() for i in raw if isinstance(i, str) and i.strip()]

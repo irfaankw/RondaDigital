@@ -4,6 +4,8 @@ from django.db import models
 class NIKWhitelist(models.Model):
     nik         = models.CharField(max_length=16, unique=True)
     nama_sesuai = models.CharField(max_length=100, blank=True)
+    rt          = models.CharField(max_length=10, blank=True)
+    rw          = models.CharField(max_length=10, blank=True)
     is_used     = models.BooleanField(default=False)
     created_at  = models.DateTimeField(auto_now_add=True)
 

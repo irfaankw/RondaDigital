@@ -14,11 +14,7 @@
       <div>
         <h1 class="text-2xl font-bold text-white tracking-tight">Jadwal Ronda</h1>
         <p class="text-sm text-slate-400 mt-0.5">
-          {% if request.user.profile.rt %}
-            RT {{ request.user.profile.rt.nomor_rt }}/RW {{ request.user.profile.rt.nomor_rw }} &middot; {{ request.user.profile.rt.nama_wilayah }}
-          {% else %}
             Kelola jadwal ronda lingkungan
-          {% endif %}
         </p>
       </div>
       <button
@@ -98,13 +94,38 @@
 
     {% else %}
     <!-- LIST JADWAL -->
-    <p class="text-sm text-slate-500 mb-4">{{ total }} jadwal tersimpan</p>
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+      <p class="text-sm text-slate-500">{{ total }} jadwal tersimpan</p>
+      <!-- Filter status -->
+      <div class="flex items-center gap-2" id="filterBar">
+        <button data-filter="semua"
+          class="filter-btn aktif-filter px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors
+                 bg-slate-700 text-white border border-slate-600">
+          Semua
+        </button>
+        <button data-filter="aktif"
+          class="filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors
+                 bg-slate-800 text-slate-400 border border-slate-700/50 hover:border-emerald-700">
+          Aktif
+        </button>
+        <button data-filter="akan_datang"
+          class="filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors
+                 bg-slate-800 text-slate-400 border border-slate-700/50 hover:border-indigo-700">
+          Akan Datang
+        </button>
+        <button data-filter="selesai"
+          class="filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors
+                 bg-slate-800 text-slate-400 border border-slate-700/50 hover:border-slate-600">
+          Selesai
+        </button>
+      </div>
+    </div>
     <div id="jadwalList" class="space-y-3">
       {% for j in jadwal_data %}
       <div
         class="jadwal-card rounded-2xl border border-slate-700/50 bg-[#111827] px-5 py-4
                hover:border-slate-600 transition-all duration-200 cursor-default"
-        data-id="{{ j.obj.pk }}"
+        data-id="{{ j.obj.pk }}" data-status="{{ j.status }}"
       >
         <div class="flex items-start justify-between gap-3">
 
@@ -147,10 +168,76 @@
                 </span>
                 {% endfor %}
               </div>
+              <!-- ── STATUS ABSENSI COLLAPSIBLE ── -->
+              {% if j.absensi_info %}
+              <div class="mt-3 pt-3 border-t border-slate-700/40">
+                <!-- Header — klik untuk toggle -->
+                <button
+                  type="button"
+                  class="absensi-toggle w-full flex items-center justify-between group"
+                  data-target="absensi-{{ j.obj.pk }}"
+                >
+                  <span class="text-[11px] font-semibold tracking-widest text-slate-500 uppercase group-hover:text-slate-400 transition-colors">
+                    Absensi
+                  </span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[11px] px-2 py-0.5 rounded-full
+                      {% if j.sudah_absen == j.total_petugas %}bg-emerald-900/50 text-emerald-400
+                      {% elif j.sudah_absen > 0 %}bg-yellow-900/50 text-yellow-400
+                      {% else %}bg-slate-800 text-slate-500{% endif %}">
+                      {{ j.sudah_absen }}/{{ j.total_petugas }} hadir
+                    </span>
+                    <!-- Chevron -->
+                    <svg class="absensi-chevron w-3.5 h-3.5 text-slate-500 transition-transform duration-200"
+                         fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                  </div>
+                </button>
+
+                <!-- Isi absensi — tersembunyi by default -->
+                <div id="absensi-{{ j.obj.pk }}" class="hidden mt-2.5">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
+                    {% for ab in j.absensi_info %}
+                    <div class="flex items-center justify-between gap-2 py-1">
+                      <div class="flex items-center gap-2 min-w-0">
+                        <span class="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0
+                          {% if ab.status == 'hadir' %}bg-emerald-600
+                          {% elif ab.status == 'terlambat' %}bg-yellow-500
+                          {% else %}bg-slate-700{% endif %}">
+                          {{ ab.inisial }}
+                        </span>
+                        <span class="text-xs text-slate-300 truncate">{{ ab.nama }}</span>
+                      </div>
+                      <div class="flex items-center gap-2 shrink-0">
+                        {% if ab.status == 'hadir' %}
+                          <span class="text-[11px] font-semibold text-emerald-400">✓ {{ ab.waktu }}</span>
+                        {% elif ab.status == 'terlambat' %}
+                          <span class="text-[11px] font-semibold text-yellow-400">⚠ {{ ab.waktu }}</span>
+                        {% else %}
+                          <span class="text-[11px] text-slate-600 italic">Alpha</span>
+                        {% endif %}
+                        {% if ab.foto_url %}
+                        <button
+                          onclick="bukaFotoAbsen('{{ ab.foto_url }}', '{{ ab.nama }}', '{{ ab.waktu }}', '{{ ab.status }}', {{ ab.jarak|default:'null' }}, '{{ ab.latitude|default:'' }}', '{{ ab.longitude|default:'' }}')"
+                          class="w-7 h-7 rounded overflow-hidden border border-slate-600 hover:border-indigo-400 transition-colors shrink-0"
+                          title="Lihat foto absensi"
+                        >
+                          <img src="{{ ab.foto_url }}" class="w-full h-full object-cover" alt="foto">
+                        </button>
+                        {% endif %}
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+              {% endif %}
             </div>
           </div>
 
           <!-- Kanan: tombol edit -->
+          {% if j.status != 'selesai' %}
           <button
             class="shrink-0 w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700
                    flex items-center justify-center text-slate-400 hover:text-white
@@ -163,7 +250,7 @@
                 d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"/>
             </svg>
           </button>
-
+          {% endif %}
         </div>
       </div>
       {% endfor %}
@@ -177,7 +264,7 @@
 <div
   id="modalOverlay"
   class="fixed inset-0 z-50 flex items-start justify-center pt-[88px] px-4 pb-4 hidden"
-  style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);"
+  style="background: rgba(0,0,0,0.7);"
 >
   <div
     id="modalBox"
@@ -203,39 +290,37 @@
       <!-- JADWAL -->
       <section>
         <p class="text-xs font-semibold tracking-widest text-slate-500 uppercase mb-3">Jadwal</p>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
-          <!-- Tanggal -->
-          <div>
-            <label class="block text-xs text-slate-400 mb-1">Tanggal <span class="text-red-400">*</span></label>
-            <input
-              type="date" id="inputTanggal"
-              class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2.5
-                     text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-            />
-            <p class="text-[11px] text-slate-500 mt-1">Hari ini s/d 6 hari ke depan</p>
-          </div>
+        <!-- Tanggal — full width, 7 tombol -->
+        <div class="mb-3">
+          <label class="block text-xs text-slate-400 mb-2">
+            Tanggal <span class="text-red-400">*</span>
+          </label>
+          <div id="tanggalPicker" class="grid grid-cols-7 gap-1.5"></div>
+          <input type="hidden" id="inputTanggal" />
+          <p class="text-[11px] text-slate-500 mt-1.5">
+            Tanggal abu-abu sudah ada jadwal ronda
+          </p>
+        </div>
 
-          <!-- Jam Mulai -->
+        <!-- Jam — 2 kolom -->
+        <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs text-slate-400 mb-1">Jam Mulai</label>
             <input
               type="text" id="inputJamMulai" value="21:00" readonly
               class="w-full bg-slate-700/50 border border-slate-600 rounded-xl px-3 py-2.5
-                     text-slate-300 text-sm cursor-not-allowed"
+                    text-slate-300 text-sm cursor-not-allowed"
             />
           </div>
-
-          <!-- Jam Selesai -->
           <div>
             <label class="block text-xs text-slate-400 mb-1">Jam Selesai</label>
             <input
               type="text" id="inputJamSelesai" value="05:00" readonly
               class="w-full bg-slate-700/50 border border-slate-600 rounded-xl px-3 py-2.5
-                     text-slate-300 text-sm cursor-not-allowed"
+                    text-slate-300 text-sm cursor-not-allowed"
             />
           </div>
-
         </div>
       </section>
 
@@ -244,7 +329,7 @@
         <p class="text-xs font-semibold tracking-widest text-slate-500 uppercase mb-3">Area Patroli</p>
         <input
           type="text" id="inputBlokArea"
-          placeholder="Contoh: Blok A-D, Area Timur, dll"
+          placeholder="Masukkan area patroli"
           class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2.5
                  text-white text-sm placeholder-slate-500
                  focus:outline-none focus:border-indigo-500 transition-colors"
@@ -311,7 +396,7 @@
       <!-- ITEM PATROLI -->
       <section>
         <div class="flex items-center justify-between mb-3">
-          <p class="text-xs font-semibold tracking-widest text-slate-500 uppercase">Item Patroli</p>
+          <p class="text-xs font-semibold tracking-widest text-slate-500 uppercase">Tugas Patroli</p>
           <button type="button" id="btnTambahItem"
                   class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -328,7 +413,7 @@
         <p class="text-xs font-semibold tracking-widest text-slate-500 uppercase mb-3">Catatan untuk Petugas</p>
         <textarea
           id="inputCatatanRt" rows="3"
-          placeholder="Instruksi khusus, area yang perlu diperhatikan, dll."
+          placeholder="Berikan catatan kepada petugas"
           class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2.5
                  text-white text-sm placeholder-slate-500 resize-none
                  focus:outline-none focus:border-indigo-500 transition-colors"
@@ -374,94 +459,290 @@
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════════════════════
-     JAVASCRIPT
-════════════════════════════════════════════════════════════ -->
+<!-- ══ MODAL KONFIRMASI HAPUS ══ -->
+<div id="modalKonfirmasiHapus"
+     class="fixed inset-0 z-[200] hidden items-center justify-center p-4"
+     style="background:rgba(0,0,0,0.7);backdrop-filter:blur(4px)">
+  <div class="bg-[#111827] rounded-2xl border border-slate-700/60 shadow-2xl w-full max-w-sm p-6">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-10 h-10 rounded-full bg-red-900/40 flex items-center justify-center shrink-0">
+        <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+        </svg>
+      </div>
+      <div>
+        <p class="text-sm font-semibold text-white">Hapus Jadwal Ronda?</p>
+        <p class="text-xs text-slate-400 mt-0.5">Semua data petugas dalam jadwal ini akan ikut terhapus.</p>
+      </div>
+    </div>
+    <div class="flex items-center justify-end gap-2 mt-6">
+      <button id="btnBatalHapus"
+              class="px-4 py-2 rounded-xl text-sm font-medium text-slate-300
+                     bg-slate-800 hover:bg-slate-700 border border-slate-600/50 transition-colors">
+        Batal
+      </button>
+      <button id="btnKonfirmasiHapus"
+              class="px-4 py-2 rounded-xl text-sm font-semibold text-white
+                     bg-red-600 hover:bg-red-500 transition-colors active:scale-95 flex items-center gap-2">
+        <span id="labelKonfirmasiHapus">Ya, Hapus</span>
+        <svg id="spinnerHapus" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="white" stroke-width="4"/>
+          <path class="opacity-75" fill="white" d="M4 12a8 8 0 018-8v8z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL FOTO ABSENSI ══ -->
+<div id="modalFotoAbsen" class="fixed inset-0 z-[200] hidden items-center justify-center p-4"
+     style="background:rgba(0,0,0,0.85);backdrop-filter:blur(6px)">
+  <div class="relative bg-[#111827] rounded-2xl border border-slate-700/60 shadow-2xl w-full max-w-sm">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-700/50">
+      <div>
+        <p id="fotoAbsenNama" class="text-sm font-semibold text-white"></p>
+        <p id="fotoAbsenStatus" class="text-xs text-slate-400 mt-0.5"></p>
+      </div>
+      <button onclick="tutupFotoAbsen()"
+              class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="p-4">
+      <img id="fotoAbsenImg" src="" alt="Foto Absen"
+           class="w-full rounded-xl object-cover max-h-72 bg-slate-800">
+    </div>
+    <div class="px-5 pb-5 space-y-2">
+      <div class="flex items-center gap-2 text-xs text-slate-400">
+        <svg class="w-3.5 h-3.5 text-indigo-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/>
+        </svg>
+        <span id="fotoAbsenJarak"></span>
+      </div>
+      <a id="fotoAbsenMaps" href="#" target="_blank"
+         class="flex items-center gap-2 text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
+        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
+        </svg>
+        Buka di Google Maps
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Inject data dari views ke JS -->
+<script>
+  const TANGGAL_TERPAKAI = {{ tanggal_terpakai_json|safe }};
+  const URL_PETUGAS_TERSEDIA = "{% url 'dashboard_rt:jadwal_petugas_tersedia' %}";
+</script>
+
 <script>
 (function () {
   "use strict";
 
-  // ── Hitung statistik dari data Django ──────────────────────
-  const rawAktif       = document.getElementById('rawAktif');
-  const rawAkanDatang  = document.getElementById('rawAkanDatang');
-  const statAktif      = document.getElementById('statAktif');
-  const statAkanDatang = document.getElementById('statAkanDatang');
-  const statTotal      = document.getElementById('statTotal');
-
+  // ── Statistik ─────────────────────────────────────────────────
   function hitungStat(rawEl) {
     if (!rawEl) return 0;
     return (rawEl.textContent.match(/1/g) || []).length;
   }
+  document.getElementById('statAktif').textContent      = hitungStat(document.getElementById('rawAktif'));
+  document.getElementById('statAkanDatang').textContent = hitungStat(document.getElementById('rawAkanDatang'));
 
-  statAktif.textContent      = hitungStat(rawAktif);
-  statAkanDatang.textContent = hitungStat(rawAkanDatang);
-  // total sudah di-render via Django, no-op
+  // ── DOM refs ──────────────────────────────────────────────────
+  const overlay         = document.getElementById('modalOverlay');
+  const modalTitle      = document.getElementById('modalTitle');
+  const btnTutup        = document.getElementById('btnTutupModal');
+  const btnBatal        = document.getElementById('btnBatalModal');
+  const btnSimpan       = document.getElementById('btnSimpanJadwal');
+  const btnSimpanLbl    = document.getElementById('btnSimpanLabel');
+  const btnSpinner      = document.getElementById('btnSimpanSpinner');
+  const btnHapus        = document.getElementById('btnHapusJadwal');
+  const modalError      = document.getElementById('modalError');
+  const inputTanggal    = document.getElementById('inputTanggal');
+  const tanggalPicker   = document.getElementById('tanggalPicker');
+  const inputBlok       = document.getElementById('inputBlokArea');
+  const inputCatatan    = document.getElementById('inputCatatanRt');
+  const searchInput     = document.getElementById('searchPetugas');
+  const listWarga       = document.getElementById('listWarga');
+  const chips           = document.getElementById('chipsPetugas');
+  const counter         = document.getElementById('counterPetugas');
+  const itemList        = document.getElementById('itemPatroliList');
+  const modalHapus      = document.getElementById('modalKonfirmasiHapus');
+  const btnBatalHapus   = document.getElementById('btnBatalHapus');
+  const btnKonfirmHapus = document.getElementById('btnKonfirmasiHapus');
+  const spinnerHapus    = document.getElementById('spinnerHapus');
+  const labelKonfirmHapus = document.getElementById('labelKonfirmasiHapus');
 
-  // ── Setup tanggal min/max ────────────────────────────────────
-  const inputTanggal = document.getElementById('inputTanggal');
-  function setupTanggal() {
-    const today = new Date();
-    const max   = new Date(today);
-    max.setDate(today.getDate() + 6);
-    const fmt = (d) => d.toISOString().split('T')[0];
-    inputTanggal.min = fmt(today);
-    inputTanggal.max = fmt(max);
-    inputTanggal.value = fmt(today);
+  // ── State ─────────────────────────────────────────────────────
+  let modalMode       = 'buat';
+  let editJadwalId    = null;
+  let selectedPetugas = {};
+  let petugasTidakTersedia = [];   // diupdate tiap ganti tanggal
+
+  // ── Helpers ───────────────────────────────────────────────────
+  function tampilError(msg) {
+    modalError.textContent = msg;
+    modalError.classList.remove('hidden');
+    setTimeout(() => modalError.classList.add('hidden'), 4000);
   }
 
-  // ── State modal ──────────────────────────────────────────────
-  let modalMode  = 'buat';   // 'buat' | 'edit'
-  let editJadwalId = null;
-  let selectedPetugas = {};  // { id: nama }
-
-  // ── DOM refs ─────────────────────────────────────────────────
-  const overlay      = document.getElementById('modalOverlay');
-  const modalBox     = document.getElementById('modalBox');
-  const modalTitle   = document.getElementById('modalTitle');
-  const btnTutup     = document.getElementById('btnTutupModal');
-  const btnBatal     = document.getElementById('btnBatalModal');
-  const btnSimpan    = document.getElementById('btnSimpanJadwal');
-  const btnSimpanLbl = document.getElementById('btnSimpanLabel');
-  const btnSpinner   = document.getElementById('btnSimpanSpinner');
-  const btnHapus     = document.getElementById('btnHapusJadwal');
-  const modalError   = document.getElementById('modalError');
-
-  const inputBlok    = document.getElementById('inputBlokArea');
-  const inputCatatan = document.getElementById('inputCatatanRt');
-  const searchInput  = document.getElementById('searchPetugas');
-  const listWarga    = document.getElementById('listWarga');
-  const chips        = document.getElementById('chipsPetugas');
-  const counter      = document.getElementById('counterPetugas');
-  const itemList     = document.getElementById('itemPatroliList');
-
-  // ── Buka modal ───────────────────────────────────────────────
-  function bukaModal(mode = 'buat') {
-    modalMode    = mode;
-    editJadwalId = null;
-    modalTitle.textContent = mode === 'buat' ? 'Buat Jadwal Ronda' : 'Edit Jadwal Ronda';
-    btnHapus.classList.toggle('hidden', mode !== 'edit');
-    btnSimpanLbl.textContent = mode === 'buat' ? 'Simpan Jadwal' : 'Perbarui Jadwal';
-    modalError.classList.add('hidden');
-
-    // Reset fields
-    setupTanggal();
-    inputBlok.value    = '';
-    inputCatatan.value = '';
-    selectedPetugas    = {};
-    renderChips();
-    resetCheckboxes();
-    renderItemList([]);
-
-    overlay.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  function tutupModal() {
-    overlay.classList.add('hidden');
-    document.body.style.overflow = '';
+  function getCSRF() {
+    return document.cookie.split('; ')
+      .find(r => r.startsWith('csrftoken='))?.split('=')[1] || '';
   }
 
-  // ── Petugas checkbox & chips ─────────────────────────────────
+  function getInisial(nama) {
+    return (nama || '?').split(' ').slice(0, 2).map(w => w[0].toUpperCase()).join('');
+  }
+
+  // Format tanggal lokal → "YYYY-MM-DD" (hindari UTC offset)
+  function fmtDate(d) {
+    const y  = d.getFullYear();
+    const m  = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${dd}`;
+  }
+
+  // ── Date Picker: render 7 tombol ─────────────────────────────
+  // tanggalTerpakai   : array string "YYYY-MM-DD" yang sudah ada jadwal (tombol disabled)
+  // nilaiAwal         : string "YYYY-MM-DD" yang langsung dipilih (opsional, untuk mode edit)
+  function renderTanggalPicker(tanggalTerpakai = [], nilaiAwal = null) {
+    tanggalPicker.innerHTML = '';
+    inputTanggal.value      = '';
+
+    const today     = new Date();
+    const HARI      = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+    const BULAN_SHORT = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+
+    let sudahPilih = false;
+
+    for (let i = 0; i <= 6; i++) {
+      const tgl     = new Date(today);
+      tgl.setDate(today.getDate() + i);
+      const tglStr  = fmtDate(tgl);
+      const terpakai = tanggalTerpakai.includes(tglStr);
+
+      const btn = document.createElement('button');
+      btn.type        = 'button';
+      btn.dataset.tgl = tglStr;
+
+      // Label: nama hari + tanggal
+      btn.innerHTML = `
+        <span class="block text-[10px] font-medium leading-none mb-1 opacity-70">
+          ${HARI[tgl.getDay()]}
+        </span>
+        <span class="block text-sm font-bold leading-none">
+          ${tgl.getDate()}
+        </span>
+        <span class="block text-[9px] leading-none mt-1 opacity-60">
+          ${BULAN_SHORT[tgl.getMonth()]}
+        </span>
+      `;
+
+      if (terpakai) {
+        // Disabled — sudah ada jadwal
+        btn.disabled  = true;
+        btn.className = `
+          relative flex flex-col items-center justify-center py-2.5 rounded-xl
+          bg-slate-800/40 border border-slate-700/30
+          text-slate-600 cursor-not-allowed select-none
+        `;
+        // Tanda silang kecil
+        const x = document.createElement('span');
+        x.className   = 'absolute top-1 right-1 text-[8px] text-slate-700 font-bold';
+        x.textContent = '✕';
+        btn.appendChild(x);
+      } else {
+        btn.className = `
+          tgl-btn flex flex-col items-center justify-center py-2.5 rounded-xl
+          bg-slate-800 border border-slate-700/50 text-slate-300
+          hover:border-indigo-500 hover:text-white hover:bg-slate-700
+          transition-all duration-150 cursor-pointer select-none
+        `;
+        btn.addEventListener('click', () => pilihTanggal(tglStr, btn));
+
+        // Auto-pilih tanggal pertama tersedia, atau nilaiAwal jika mode edit
+        if (nilaiAwal && tglStr === nilaiAwal && !sudahPilih) {
+          pilihTanggal(tglStr, btn);
+          sudahPilih = true;
+        } else if (!nilaiAwal && !sudahPilih) {
+          pilihTanggal(tglStr, btn);
+          sudahPilih = true;
+        }
+      }
+
+      tanggalPicker.appendChild(btn);
+    }
+  }
+
+  async function pilihTanggal(tglStr, btnEl) {
+    // Highlight tombol terpilih
+    tanggalPicker.querySelectorAll('.tgl-btn').forEach(b => {
+      b.classList.remove('border-indigo-500', 'bg-indigo-900/40', 'text-white');
+      b.classList.add('border-slate-700/50', 'bg-slate-800', 'text-slate-300');
+    });
+    btnEl.classList.remove('border-slate-700/50', 'bg-slate-800', 'text-slate-300');
+    btnEl.classList.add('border-indigo-500', 'bg-indigo-900/40', 'text-white');
+
+    inputTanggal.value = tglStr;
+
+    // Reset petugas yang sedang dipilih — karena tanggal berubah
+    // (hanya uncheck yang ternyata tidak tersedia, yang lain tetap)
+    await refreshPetugasTersedia(tglStr);
+  }
+
+  async function refreshPetugasTersedia(tglStr) {
+    try {
+      const res  = await fetch(`${URL_PETUGAS_TERSEDIA}?tanggal=${tglStr}`);
+      const data = await res.json();
+      if (!data.ok) return;
+
+      petugasTidakTersedia = data.tidak_tersedia || [];
+      applyPetugasSibuk(petugasTidakTersedia);
+
+      // Uncheck & hapus dari selectedPetugas jika ternyata tidak tersedia
+      petugasTidakTersedia.forEach(id => {
+        const idStr = String(id);
+        if (selectedPetugas[idStr]) {
+          delete selectedPetugas[idStr];
+          const cb = listWarga.querySelector(`input[value="${idStr}"]`);
+          if (cb) cb.checked = false;
+        }
+      });
+      renderChips();
+    } catch {
+      // Gagal fetch — biarkan, jangan block UI
+    }
+  }
+
+  // ── Grey-out petugas ──────────────────────────────────────────
+  function applyPetugasSibuk(sibukIds = []) {
+    listWarga.querySelectorAll('.warga-item').forEach(item => {
+      const id = parseInt(item.dataset.id);
+      const cb = item.querySelector('.petugas-cb');
+      if (sibukIds.includes(id)) {
+        item.classList.add('opacity-40', 'cursor-not-allowed');
+        item.title = 'Petugas masih libur (shift sehari sebelumnya)';
+        if (cb && !cb.checked) cb.disabled = true;
+      } else {
+        item.classList.remove('opacity-40', 'cursor-not-allowed');
+        item.title = '';
+        if (cb) cb.disabled = false;
+      }
+    });
+  }
+
+  // ── Chips & checkbox ──────────────────────────────────────────
   function renderChips() {
     chips.innerHTML = '';
     const ids = Object.keys(selectedPetugas);
@@ -474,7 +755,7 @@
         <span class="w-4 h-4 rounded-full bg-indigo-600 flex items-center justify-center text-[9px] font-bold text-white">
           ${getInisial(nama)}
         </span>
-        ${nama}
+        ${escapeHtml(nama)}
         <button data-id="${id}" class="chip-remove ml-0.5 text-indigo-400 hover:text-red-400 transition-colors">
           <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -484,12 +765,10 @@
       chips.appendChild(chip);
     });
 
-    // event chip remove
     chips.querySelectorAll('.chip-remove').forEach(btn => {
       btn.addEventListener('click', () => {
         const rmId = btn.dataset.id;
         delete selectedPetugas[rmId];
-        // uncheck
         const cb = listWarga.querySelector(`input[value="${rmId}"]`);
         if (cb) cb.checked = false;
         renderChips();
@@ -498,17 +777,15 @@
   }
 
   function resetCheckboxes() {
-    listWarga.querySelectorAll('.petugas-cb').forEach(cb => { cb.checked = false; });
+    listWarga.querySelectorAll('.petugas-cb').forEach(cb => {
+      cb.checked  = false;
+      cb.disabled = false;
+    });
   }
 
-  function getInisial(nama) {
-    return (nama || '?').split(' ').slice(0, 2).map(w => w[0].toUpperCase()).join('');
-  }
-
-  // Checkbox change
   listWarga.addEventListener('change', e => {
     if (!e.target.classList.contains('petugas-cb')) return;
-    const id   = e.target.value;
+    const id    = e.target.value;
     const label = e.target.closest('.warga-item');
     const nama  = label ? label.dataset.nama : id;
 
@@ -525,20 +802,18 @@
     renderChips();
   });
 
-  // Search filter
   searchInput.addEventListener('input', () => {
     const q = searchInput.value.toLowerCase();
     listWarga.querySelectorAll('.warga-item').forEach(item => {
-      const nama = item.dataset.nama.toLowerCase();
-      item.style.display = nama.includes(q) ? '' : 'none';
+      item.style.display = item.dataset.nama.toLowerCase().includes(q) ? '' : 'none';
     });
   });
 
-  // ── Item patroli ─────────────────────────────────────────────
+  // ── Item patroli ──────────────────────────────────────────────
   function renderItemList(items) {
     itemList.innerHTML = '';
-    items.forEach((val, i) => tambahItemRow(val));
     if (items.length === 0) tambahItemRow('');
+    else items.forEach(val => tambahItemRow(val));
   }
 
   function tambahItemRow(value = '') {
@@ -550,7 +825,7 @@
         class="item-input flex-1 bg-slate-800 border border-slate-600 rounded-xl px-3 py-2
                text-white text-sm placeholder-slate-500
                focus:outline-none focus:border-indigo-500 transition-colors"
-        placeholder="Deskripsi item patroli..."
+        placeholder="Masukkan checklist patroli"
         value="${escapeHtml(value)}"
       />
       <button type="button" class="btn-hapus-item w-7 h-7 rounded-lg bg-slate-800 hover:bg-red-900/40
@@ -573,22 +848,40 @@
 
   document.getElementById('btnTambahItem').addEventListener('click', () => tambahItemRow(''));
 
-  // ── Error helper ─────────────────────────────────────────────
-  function tampilError(msg) {
-    modalError.textContent = msg;
-    modalError.classList.remove('hidden');
-    setTimeout(() => modalError.classList.add('hidden'), 4000);
+  // ── Buka modal ────────────────────────────────────────────────
+  function bukaModal(mode = 'buat') {
+    modalMode    = mode;
+    editJadwalId = null;
+    modalTitle.textContent   = mode === 'buat' ? 'Buat Jadwal Ronda' : 'Edit Jadwal Ronda';
+    btnSimpanLbl.textContent = mode === 'buat' ? 'Simpan Jadwal'     : 'Perbarui Jadwal';
+    btnHapus.classList.toggle('hidden', mode !== 'edit');
+    modalError.classList.add('hidden');
+
+    inputBlok.value    = '';
+    inputCatatan.value = '';
+    selectedPetugas    = {};
+    petugasTidakTersedia = [];
+    renderChips();
+    resetCheckboxes();
+    applyPetugasSibuk([]);
+    renderItemList([]);
+
+    // Render picker — tanggal terpakai dari global (sudah cukup untuk mode buat)
+    renderTanggalPicker(TANGGAL_TERPAKAI);
+
+    overlay.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
   }
 
-  function escapeHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  function tutupModal() {
+    overlay.classList.add('hidden');
+    document.body.style.overflow = '';
   }
 
-  // ── Kumpulkan data form ───────────────────────────────────────
+  // ── Kumpul & kirim ────────────────────────────────────────────
   function kumpulData() {
     const items = Array.from(itemList.querySelectorAll('.item-input'))
       .map(i => i.value.trim()).filter(Boolean);
-
     return {
       petugas_ids : Object.keys(selectedPetugas).map(Number),
       tanggal     : inputTanggal.value,
@@ -600,32 +893,19 @@
     };
   }
 
-  // ── Kirim AJAX ───────────────────────────────────────────────
-  function getCSRF() {
-    return document.cookie.split('; ')
-      .find(r => r.startsWith('csrftoken='))?.split('=')[1] || '';
-  }
-
   async function kirimJadwal(url, data) {
     btnSimpan.disabled = true;
     btnSpinner.classList.remove('hidden');
     modalError.classList.add('hidden');
-
     try {
-      const res = await fetch(url, {
+      const res  = await fetch(url, {
         method : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken' : getCSRF(),
-        },
-        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
+        body   : JSON.stringify(data),
       });
       const json = await res.json();
-      if (json.ok) {
-        location.reload();
-      } else {
-        tampilError(json.pesan || 'Terjadi kesalahan.');
-      }
+      if (json.ok) location.reload();
+      else tampilError(json.pesan || 'Terjadi kesalahan.');
     } catch {
       tampilError('Gagal terhubung ke server.');
     } finally {
@@ -634,83 +914,116 @@
     }
   }
 
-  // ── Simpan ───────────────────────────────────────────────────
   btnSimpan.addEventListener('click', () => {
     const data = kumpulData();
-
-    if (!data.tanggal)           return tampilError('Tanggal wajib diisi.');
+    if (!data.tanggal)               return tampilError('Pilih tanggal terlebih dahulu.');
     if (data.petugas_ids.length < 5) return tampilError('Minimal 5 petugas harus dipilih.');
     if (data.petugas_ids.length > 7) return tampilError('Maksimal 7 petugas per jadwal.');
 
     if (modalMode === 'buat') {
       kirimJadwal('{% url "dashboard_rt:jadwal_buat" %}', data);
     } else {
-      kirimJadwal(`/panel-rt/jadwal-ronda/${editJadwalId}/edit/`, data);
+      kirimJadwal(`/panel-rt/jadwal/${editJadwalId}/edit/`, data);
     }
   });
 
   // ── Hapus ─────────────────────────────────────────────────────
-  btnHapus.addEventListener('click', async () => {
+  btnHapus.addEventListener('click', () => {
     if (!editJadwalId) return;
-    if (!confirm('Yakin ingin menghapus jadwal ini?')) return;
+    modalHapus.classList.remove('hidden');
+    modalHapus.classList.add('flex');
+  });
 
+  btnBatalHapus.addEventListener('click', () => {
+    modalHapus.classList.add('hidden');
+    modalHapus.classList.remove('flex');
+  });
+
+  btnKonfirmHapus.addEventListener('click', async () => {
+    btnKonfirmHapus.disabled      = true;
+    spinnerHapus.classList.remove('hidden');
+    labelKonfirmHapus.textContent = 'Menghapus...';
     try {
-      const res = await fetch(`/dashboard-rt/jadwal-ronda/${editJadwalId}/hapus/`, {
+      const res  = await fetch(`/panel-rt/jadwal/${editJadwalId}/hapus/`, {
         method : 'POST',
         headers: { 'X-CSRFToken': getCSRF() },
       });
       const json = await res.json();
-      if (json.ok) location.reload();
-      else tampilError(json.pesan || 'Gagal menghapus.');
+      if (json.ok) {
+        location.reload();
+      } else {
+        modalHapus.classList.add('hidden');
+        modalHapus.classList.remove('flex');
+        tampilError(json.pesan || 'Gagal menghapus.');
+      }
     } catch {
+      modalHapus.classList.add('hidden');
+      modalHapus.classList.remove('flex');
       tampilError('Gagal terhubung ke server.');
+    } finally {
+      btnKonfirmHapus.disabled      = false;
+      spinnerHapus.classList.add('hidden');
+      labelKonfirmHapus.textContent = 'Ya, Hapus';
     }
   });
 
-  // ── Edit: load data ───────────────────────────────────────────
+  // ── Edit: load data dari server ───────────────────────────────
   async function bukaEdit(pk) {
     bukaModal('edit');
     editJadwalId = pk;
-
     try {
-      const res  = await fetch(`/panel-rt/jadwal-ronda/${pk}/`);
+      const res  = await fetch(`/panel-rt/jadwal/${pk}/`);
       const data = await res.json();
       if (!data.ok) return tampilError('Gagal memuat data jadwal.');
 
-      // Isi field
-      inputTanggal.value  = data.tanggal;
-      inputBlok.value     = data.blok_area || '';
-      inputCatatan.value  = data.catatan_rt || '';
+      // Render picker dengan tanggal terpakai dari server
+      // nilaiAwal = tanggal jadwal ini → tetap bisa dipilih
+      renderTanggalPicker(data.tanggal_terpakai || [], data.tanggal);
 
-      // Petugas
+      inputBlok.value    = data.blok_area  || '';
+      inputCatatan.value = data.catatan_rt || '';
+
       selectedPetugas = {};
       data.petugas.forEach(p => {
         selectedPetugas[p.id] = p.nama;
         const cb = listWarga.querySelector(`input[value="${p.id}"]`);
-        if (cb) cb.checked = true;
+        if (cb) {
+          cb.checked  = true;
+          cb.disabled = false;
+        }
       });
       renderChips();
 
-      // Items
-      renderItemList((data.items || []).map(i => i.deskripsi));
+      // Fetch petugas tidak tersedia untuk tanggal ini
+      // lalu exclude yang sudah dipilih (boleh tetap di jadwal ini)
+      if (data.tanggal) {
+        await refreshPetugasTersedia(data.tanggal);
+        // Re-enable petugas yang memang sudah ada di jadwal ini
+        Object.keys(selectedPetugas).forEach(id => {
+          const cb   = listWarga.querySelector(`input[value="${id}"]`);
+          const item = listWarga.querySelector(`.warga-item[data-id="${id}"]`);
+          if (cb)   { cb.disabled = false; }
+          if (item) {
+            item.classList.remove('opacity-40', 'cursor-not-allowed');
+            item.title = '';
+          }
+        });
+      }
 
+      renderItemList((data.items || []).map(i => i.deskripsi));
     } catch {
       tampilError('Gagal memuat data.');
     }
   }
 
-  // ── Tutup modal ───────────────────────────────────────────────
+  // ── Tutup ─────────────────────────────────────────────────────
   [btnTutup, btnBatal].forEach(b => b.addEventListener('click', tutupModal));
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) tutupModal();
-  });
+  overlay.addEventListener('click', e => { if (e.target === overlay) tutupModal(); });
 
-  // ── Tombol buat ───────────────────────────────────────────────
   document.getElementById('btnBuatJadwal').addEventListener('click', () => bukaModal('buat'));
   const btnPertama = document.getElementById('btnBuatPertama');
   if (btnPertama) btnPertama.addEventListener('click', () => bukaModal('buat'));
 
-  // ── Tombol edit pada card ────────────────────────────────────
   document.querySelectorAll('.btn-edit').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
@@ -718,8 +1031,63 @@
     });
   });
 
-  // ── Inisiasi tanggal saat load ────────────────────────────────
-  setupTanggal();
+  // ── Filter status ─────────────────────────────────────────────
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const filter = btn.dataset.filter;
+      document.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.remove('bg-slate-700', 'text-white', 'border-slate-600', 'aktif-filter');
+        b.classList.add('bg-slate-800', 'text-slate-400', 'border-slate-700/50');
+      });
+      btn.classList.remove('bg-slate-800', 'text-slate-400', 'border-slate-700/50');
+      btn.classList.add('bg-slate-700', 'text-white', 'border-slate-600', 'aktif-filter');
+      document.querySelectorAll('.jadwal-card').forEach(card => {
+        card.style.display = (filter === 'semua' || card.dataset.status === filter) ? '' : 'none';
+      });
+    });
+  });
+
+  // ── Collapsible absensi ───────────────────────────────────────
+  document.querySelectorAll('.absensi-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const content = document.getElementById(btn.dataset.target);
+      const chevron = btn.querySelector('.absensi-chevron');
+      if (!content) return;
+      const isHidden = content.classList.contains('hidden');
+      content.classList.toggle('hidden', !isHidden);
+      chevron.style.transform = isHidden ? 'rotate(180deg)' : '';
+    });
+  });
+
+  // ── Modal foto absensi ────────────────────────────────────────
+  window.bukaFotoAbsen = function (fotoUrl, nama, waktu, status, jarak, lat, lng) {
+    document.getElementById('fotoAbsenNama').textContent   = nama;
+    document.getElementById('fotoAbsenImg').src            = fotoUrl;
+    document.getElementById('fotoAbsenStatus').textContent =
+      (status === 'hadir' ? '✓ Hadir' : '⚠ Terlambat') + ' — ' + waktu + ' WITA';
+    document.getElementById('fotoAbsenJarak').textContent  =
+      jarak ? '±' + Math.round(jarak) + 'm dari pos ronda' : 'Jarak tidak tersedia';
+    const mapsEl = document.getElementById('fotoAbsenMaps');
+    if (lat && lng) {
+      mapsEl.href = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+      mapsEl.classList.remove('hidden');
+    } else {
+      mapsEl.classList.add('hidden');
+    }
+    const modal = document.getElementById('modalFotoAbsen');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  };
+
+  window.tutupFotoAbsen = function () {
+    const modal = document.getElementById('modalFotoAbsen');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  };
+
+  document.getElementById('modalFotoAbsen').addEventListener('click', function (e) {
+    if (e.target === this) window.tutupFotoAbsen();
+  });
 
 })();
 </script>

@@ -12,6 +12,7 @@ from account.models import UserProfile, NIKWhitelist
 from .models import ItemPatroli
 from .decorators import rt_required
 from .forms import JadwalRondaForm
+from emergency.models import LaporanDarurat
 
 import json
 import csv
@@ -23,6 +24,66 @@ import json as _json
 @rt_required
 def dashboard(request):
     return render(request, 'dashboard_rt/dashboard.html')
+
+
+@login_required
+@rt_required
+def laporan_darurat(request):
+    """
+    Halaman read-only untuk Ketua RT memantau semua laporan darurat
+    yang masuk dari warga. Mirip riwayat.html milik warga, tapi
+    menampilkan SEMUA laporan + nama pelapor.
+    """
+    status_filter = request.GET.get('status', 'all')
+ 
+    semua_laporan = (
+        LaporanDarurat.objects
+        .select_related('user__profile')
+        .order_by('-dibuat')
+    )
+ 
+    total_semua    = semua_laporan.count()
+    total_pending  = semua_laporan.filter(status='pending').count()
+    total_diproses = semua_laporan.filter(status='diproses').count()
+    total_selesai  = semua_laporan.filter(status='selesai').count()
+ 
+    if status_filter in ('pending', 'diproses', 'selesai'):
+        laporan_list = semua_laporan.filter(status=status_filter)
+    else:
+        status_filter = 'all'
+        laporan_list  = semua_laporan
+ 
+    # Siapkan data tampilan (nama pelapor, dll)
+    laporan_data = []
+    for lap in laporan_list:
+        profile = getattr(lap.user, 'profile', None)
+        nama_pelapor = (
+            profile.nama_lengkap if profile and profile.nama_lengkap
+            else lap.user.get_full_name() or lap.user.username
+        )
+        laporan_data.append({
+            'obj'         : lap,
+            'nama_pelapor': nama_pelapor,
+        })
+ 
+    filter_tabs = [
+        {'value': 'all',      'label': 'Semua',    'count': total_semua,    'active_class': 'bg-[#0d2a45] border-cyan-500/60 text-white'},
+        {'value': 'pending',  'label': 'Menunggu', 'count': total_pending,  'active_class': 'bg-yellow-500/10 border-yellow-500/60 text-yellow-400'},
+        {'value': 'diproses', 'label': 'Diproses', 'count': total_diproses, 'active_class': 'bg-cyan-500/10 border-cyan-500/60 text-cyan-400'},
+        {'value': 'selesai',  'label': 'Selesai',  'count': total_selesai,  'active_class': 'bg-emerald-500/10 border-emerald-500/60 text-emerald-400'},
+    ]
+ 
+    context = {
+        'laporan_data'  : laporan_data,
+        'status_filter' : status_filter,
+        'filter_tabs'   : filter_tabs,
+        'total_semua'   : total_semua,
+        'total_pending' : total_pending,
+        'total_diproses': total_diproses,
+        'total_selesai' : total_selesai,
+    }
+    return render(request, 'dashboard_rt/laporan_darurat.html', context)
+ 
 
 
 @login_required

@@ -76,3 +76,63 @@ class AbsensiShift(models.Model):
 
     def __str__(self):
         return f"Absensi {self.jadwal} — {self.status_absen}"
+    
+
+class LogPatroli(models.Model):
+    """
+    Mencatat aktivitas petugas per item checklist patroli.
+    Alur: belum → berjalan (klik Mulai) → selesai (klik Selesai).
+ 
+    Karena semua petugas dalam 1 sesi ronda berbagi ItemPatroli yang sama
+    (ItemPatroli hanya di jadwal[0]/representatif), maka tiap petugas
+    punya LogPatroli masing-masing untuk item yang sama.
+    """
+    STATUS_CHOICES = [
+        ('belum',    'Belum Dimulai'),
+        ('berjalan', 'Sedang Berjalan'),
+        ('selesai',  'Selesai'),
+    ]
+ 
+    item    = models.ForeignKey(
+        'dashboard_rt.ItemPatroli',
+        on_delete=models.CASCADE,
+        related_name='log_patroli'
+    )
+    petugas = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='log_patroli'
+    )
+    jadwal  = models.ForeignKey(
+        JadwalRonda,
+        on_delete=models.CASCADE,
+        related_name='log_patroli',
+        null=True,
+        blank=True,
+    )
+ 
+    status        = models.CharField(max_length=10, choices=STATUS_CHOICES, default='belum')
+    waktu_mulai   = models.DateTimeField(null=True, blank=True)
+    waktu_selesai = models.DateTimeField(null=True, blank=True)
+    created_at    = models.DateTimeField(auto_now_add=True)
+ 
+    class Meta:
+        verbose_name        = 'Log Patroli'
+        verbose_name_plural = 'Log Patroli'
+        unique_together     = ['item', 'petugas', 'jadwal']
+        ordering            = ['item__urutan']
+ 
+    def __str__(self):
+        return f"[{self.get_status_display()}] {self.petugas} — {self.item.deskripsi}"
+ 
+    @property
+    def waktu_mulai_str(self):
+        if self.waktu_mulai:
+            return timezone.localtime(self.waktu_mulai).strftime('%H:%M')
+        return None
+ 
+    @property
+    def waktu_selesai_str(self):
+        if self.waktu_selesai:
+            return timezone.localtime(self.waktu_selesai).strftime('%H:%M')
+        return None

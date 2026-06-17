@@ -1585,12 +1585,15 @@
   .border-indigo-500 {
     border-color: var(--color-indigo-500);
   }
+<<<<<<< HEAD
   .border-indigo-500\/20 {
     border-color: color-mix(in srgb, oklch(58.5% 0.233 277.117) 20%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       border-color: color-mix(in oklab, var(--color-indigo-500) 20%, transparent);
     }
   }
+=======
+>>>>>>> 5443cf6296f26f67d3e9845bc7cd6cd82c524fb5
   .border-indigo-500\/30 {
     border-color: color-mix(in srgb, oklch(58.5% 0.233 277.117) 30%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
@@ -1732,12 +1735,15 @@
   .border-rose-500 {
     border-color: var(--color-rose-500);
   }
+<<<<<<< HEAD
   .border-rose-500\/20 {
     border-color: color-mix(in srgb, oklch(64.5% 0.246 16.439) 20%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       border-color: color-mix(in oklab, var(--color-rose-500) 20%, transparent);
     }
   }
+=======
+>>>>>>> 5443cf6296f26f67d3e9845bc7cd6cd82c524fb5
   .border-rose-500\/40 {
     border-color: color-mix(in srgb, oklch(64.5% 0.246 16.439) 40%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
@@ -3747,9 +3753,26 @@
     }
   }
   .group-hover\:text-amber-400 {
+<<<<<<< HEAD
+=======
     &:is(:where(.group):hover *) {
       @media (hover: hover) {
         color: var(--color-amber-400);
+      }
+    }
+  }
+  .group-hover\:text-cyan-300 {
+>>>>>>> 5443cf6296f26f67d3e9845bc7cd6cd82c524fb5
+    &:is(:where(.group):hover *) {
+      @media (hover: hover) {
+        color: var(--color-amber-400);
+      }
+    }
+  }
+  .group-hover\:text-red-400 {
+    &:is(:where(.group):hover *) {
+      @media (hover: hover) {
+        color: var(--color-red-400);
       }
     }
   }
@@ -3857,6 +3880,16 @@
     }
   }
   .hover\:border-cyan-400 {
+<<<<<<< HEAD
+=======
+    &:hover {
+      @media (hover: hover) {
+        border-color: var(--color-cyan-400);
+      }
+    }
+  }
+  .hover\:border-cyan-500 {
+>>>>>>> 5443cf6296f26f67d3e9845bc7cd6cd82c524fb5
     &:hover {
       @media (hover: hover) {
         border-color: var(--color-cyan-400);
@@ -3869,6 +3902,19 @@
         border-color: color-mix(in srgb, oklch(71.5% 0.143 215.221) 30%, transparent);
         @supports (color: color-mix(in lab, red, red)) {
           border-color: color-mix(in oklab, var(--color-cyan-500) 30%, transparent);
+<<<<<<< HEAD
+=======
+        }
+      }
+    }
+  }
+  .hover\:border-cyan-500\/50 {
+    &:hover {
+      @media (hover: hover) {
+        border-color: color-mix(in srgb, oklch(71.5% 0.143 215.221) 50%, transparent);
+        @supports (color: color-mix(in lab, red, red)) {
+          border-color: color-mix(in oklab, var(--color-cyan-500) 50%, transparent);
+>>>>>>> 5443cf6296f26f67d3e9845bc7cd6cd82c524fb5
         }
       }
     }
@@ -3911,6 +3957,7 @@
       }
     }
   }
+<<<<<<< HEAD
   .hover\:border-indigo-500\/40 {
     &:hover {
       @media (hover: hover) {
@@ -3921,6 +3968,8 @@
       }
     }
   }
+=======
+>>>>>>> 5443cf6296f26f67d3e9845bc7cd6cd82c524fb5
   .hover\:border-indigo-700 {
     &:hover {
       @media (hover: hover) {
@@ -3928,6 +3977,7 @@
       }
     }
   }
+<<<<<<< HEAD
   .hover\:border-orange-500\/40 {
     &:hover {
       @media (hover: hover) {
@@ -3938,6 +3988,8 @@
       }
     }
   }
+=======
+>>>>>>> 5443cf6296f26f67d3e9845bc7cd6cd82c524fb5
   .hover\:border-orange-500\/50 {
     &:hover {
       @media (hover: hover) {
@@ -4179,6 +4231,26 @@
     }
   }
   .hover\:bg-red-500 {
+<<<<<<< HEAD
+=======
+    &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-red-500);
+      }
+    }
+  }
+  .hover\:bg-red-500\/5 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: color-mix(in srgb, oklch(63.7% 0.237 25.331) 5%, transparent);
+        @supports (color: color-mix(in lab, red, red)) {
+          background-color: color-mix(in oklab, var(--color-red-500) 5%, transparent);
+        }
+      }
+    }
+  }
+  .hover\:bg-red-500\/20 {
+>>>>>>> 5443cf6296f26f67d3e9845bc7cd6cd82c524fb5
     &:hover {
       @media (hover: hover) {
         background-color: var(--color-red-500);

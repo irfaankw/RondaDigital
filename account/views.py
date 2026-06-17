@@ -7,6 +7,10 @@ from django.shortcuts import redirect, render
 from .forms import LoginForm, RegisterForm, ProfileForm
 from .models import NIKWhitelist, UserProfile
 
+from patrol.models import JadwalRonda
+from emergency.models import LaporanDarurat
+from datetime import date
+
 import urllib.parse
 
 # ─────────────────────────────────────────────────────────────────
@@ -82,20 +86,63 @@ def landing_index(request):
 
 @login_required
 def home_index(request):
-    """
-    Dashboard warga. Kalau active_role PETUGAS (shift masih jalan),
-    redirect ke dashboard petugas.
-    Middleware sudah handle auto-reset sebelum view ini dipanggil.
-    """
+    from patrol.models import JadwalRonda
+    from emergency.models import LaporanDarurat
+    from datetime import date
+ 
     if request.user.is_staff or request.user.is_superuser:
         return redirect('/admin/')
-
+ 
     profile = _get_or_create_profile(request.user)
-
+ 
     if profile.get_active_role() == 'PETUGAS':
         return redirect('patrol:petugas_home')
-
-    return render(request, 'account/home.html')
+ 
+    # ── Jadwal ronda hari ini (semua petugas, untuk ditampilkan ke warga) ──
+    today = date.today()
+    jadwal_hari_ini = (
+        JadwalRonda.objects
+        .filter(tanggal=today)
+        .select_related('petugas__profile', 'absensi')
+        .order_by('jam_mulai', 'petugas__profile__nama_lengkap')
+    )
+ 
+    petugas_ronda = []
+    for j in jadwal_hari_ini:
+        prof    = getattr(j.petugas, 'profile', None)
+        nama    = prof.nama_lengkap if prof else j.petugas.get_full_name() or j.petugas.username
+        inisial = ''.join([k[0].upper() for k in nama.split()[:2]])
+ 
+        absensi      = getattr(j, 'absensi', None)
+        status_absen = absensi.status_absen if absensi else 'belum'
+        # status_absen: 'hadir' | 'terlambat' | 'tidak_hadir' | 'belum'
+ 
+        petugas_ronda.append({
+            'nama'        : nama,
+            'inisial'     : inisial,
+            'jam_mulai'   : j.jam_mulai.strftime('%H:%M'),
+            'jam_selesai' : j.jam_selesai.strftime('%H:%M'),
+            'status_absen': status_absen,
+        })
+ 
+    # ── Laporan darurat milik user yang login ──
+    laporan_qs       = LaporanDarurat.objects.filter(user=request.user)
+    total_laporan    = laporan_qs.count()
+    laporan_pending  = laporan_qs.filter(status='pending').count()
+    laporan_diproses = laporan_qs.filter(status='diproses').count()
+    laporan_selesai  = laporan_qs.filter(status='selesai').count()
+    laporan_terbaru  = laporan_qs.first()  # ordering -dibuat dari Meta model
+ 
+    return render(request, 'account/home.html', {
+        'petugas_ronda'   : petugas_ronda,
+        'total_laporan'   : total_laporan,
+        'laporan_pending' : laporan_pending,
+        'laporan_diproses': laporan_diproses,
+        'laporan_selesai' : laporan_selesai,
+        'laporan_terbaru' : laporan_terbaru,
+        'today'           : today,
+    })
+ 
 
 
 def login_view(request):

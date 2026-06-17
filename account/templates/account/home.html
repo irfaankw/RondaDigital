@@ -4,24 +4,26 @@
 {% block title %}Beranda - RondaDigital{% endblock title %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto px-4 py-6 space-y-5">
+<div class="max-w-5xl mx-auto px-4 py-6 space-y-6">
 
-<div class="relative overflow-hidden bg-[#0d1b2e]/90 backdrop-blur border border-[#1e3a5f] rounded-2xl px-6 py-6 flex items-center justify-between w-full shadow-2xl">
-    
+  {# ── HEADER BANNER ── #}
+  <div class="relative overflow-hidden bg-[#0d1b2e]/90 backdrop-blur border border-[#1e3a5f] rounded-2xl px-6 py-6 flex items-center justify-between w-full shadow-2xl">
     <div class="absolute -top-10 -right-10 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
     <div class="absolute -bottom-10 -right-5 w-36 h-36 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
-
     <div class="relative z-10">
       <h1 class="text-2xl lg:text-3xl font-extrabold text-white tracking-tight leading-tight">
-        Selamat Datang di <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400"> Beranda RondaDigital</span>
+        Selamat Datang,
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+          {% if user_profile.nama_lengkap %}{{ user_profile.nama_lengkap|truncatechars:20 }}{% else %}Warga{% endif %}
+        </span>
       </h1>
-      <p class="text-sm text-slate-400 mt-1 font-medium">Sistem Keamanan Lingkungan RT 04</p>
+      <p class="text-sm text-slate-400 mt-1 font-medium">
+        Sistem Keamanan Lingkungan
+        {% if user_profile.rt %}RT {{ user_profile.rt }}{% if user_profile.rw %}/RW {{ user_profile.rw }}{% endif %}{% endif %}
+      </p>
     </div>
-
-    <button
-      onclick="openModal('modal-notif')"
-      class="md:hidden relative z-10 bg-[#0d1b2e] border border-[#1e3a5f] rounded-xl p-3 text-slate-400 hover:text-white hover:border-slate-500 transition-all active:scale-95"
-    >
+    <button onclick="openModal('modal-notif')"
+      class="md:hidden relative z-10 bg-[#0d1b2e] border border-[#1e3a5f] rounded-xl p-3 text-slate-400 hover:text-white hover:border-slate-500 transition-all active:scale-95">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
           d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
@@ -30,32 +32,19 @@
     </button>
   </div>
 
-  <!-- ================================================
-       STAT CARDS
-  ================================================ -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+  {# ── STAT CARDS ── #}
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
+    {# Card 1: Petugas Ronda #}
     <div class="bg-[#0d1b2e] border border-[#1e3a5f] rounded-2xl px-5 py-4 flex items-center justify-between shadow-lg">
       <div>
-        <p class="text-[11px] font-semibold uppercase tracking-widest text-slate-400">Status CCTV</p>
-        <p class="text-2xl font-extrabold text-white mt-1 leading-none">10 / 10</p>
-        <p class="text-xs text-red-400 mt-1.5">CCTV Mati</p>
-      </div>
-      <div class="bg-red-500/10 text-red-400 rounded-xl p-3 flex-shrink-0">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-        </svg>
-      </div>
-    </div>
-
-    <div class="bg-[#0d1b2e] border border-[#1e3a5f] rounded-2xl px-5 py-4 flex items-center justify-between shadow-lg">
-      <div>
-        <p class="text-[11px] font-semibold uppercase tracking-widest text-slate-400">Jumlah Petugas</p>
-        <p class="text-2xl font-extrabold text-white mt-1 leading-none">4 Orang</p>
-        <button
-          onclick="openModal('modal-petugas')"
-          class="text-xs text-cyan-400 hover:text-cyan-300 mt-1.5 transition text-left font-medium block"
-        >lihat petugas</button>
+        <p class="text-[11px] font-semibold uppercase tracking-widest text-slate-400">Petugas Ronda</p>
+        <p class="text-2xl font-extrabold text-white mt-1 leading-none">{{ petugas_ronda|length }} Orang</p>
+        {% if petugas_ronda %}
+          <p class="text-xs text-emerald-400 mt-1.5">Aktif hari ini</p>
+        {% else %}
+          <p class="text-xs text-slate-500 mt-1.5">Belum ada jadwal</p>
+        {% endif %}
       </div>
       <div class="bg-cyan-500/10 text-cyan-400 rounded-xl p-3 flex-shrink-0">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -64,569 +53,529 @@
       </div>
     </div>
 
-    <div class="bg-[#0d1b2e] border border-[#1e3a5f] rounded-2xl px-5 py-4 flex items-center justify-between shadow-lg">
-      <div>
-        <p class="text-[11px] font-semibold uppercase tracking-widest text-slate-400">Laporan Warga</p>
-        <p class="text-2xl font-extrabold text-white mt-1 leading-none">2 Laporan</p>
-        <p class="text-xs text-orange-400 mt-1.5">Pending</p>
+    {# Card 2: Laporan Saya #}
+    <a href="{% url 'emergency:riwayat' %}" class="no-underline block">
+      <div class="bg-[#0d1b2e] border border-[#1e3a5f] rounded-2xl px-5 py-4 flex items-center justify-between shadow-lg hover:border-orange-500/40 transition-colors h-full">
+        <div>
+          <p class="text-[11px] font-semibold uppercase tracking-widest text-slate-400">Laporan Saya</p>
+          <p class="text-2xl font-extrabold text-white mt-1 leading-none">{{ total_laporan }} Laporan</p>
+          {% if laporan_pending > 0 %}
+            <p class="text-xs text-orange-400 mt-1.5">{{ laporan_pending }} menunggu respons</p>
+          {% elif laporan_diproses > 0 %}
+            <p class="text-xs text-cyan-400 mt-1.5">{{ laporan_diproses }} sedang diproses</p>
+          {% elif total_laporan > 0 %}
+            <p class="text-xs text-emerald-400 mt-1.5">Semua selesai</p>
+          {% else %}
+            <p class="text-xs text-slate-500 mt-1.5">Belum ada laporan</p>
+          {% endif %}
+        </div>
+        <div class="bg-orange-500/10 text-orange-400 rounded-xl p-3 flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+        </div>
       </div>
-      <div class="bg-orange-500/10 text-orange-400 rounded-xl p-3 flex-shrink-0">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-        </svg>
+    </a>
+
+    {# Card 3: Status Akun #}
+    <a href="{% url 'account:profile' %}" class="no-underline block">
+      <div class="bg-[#0d1b2e] border border-[#1e3a5f] rounded-2xl px-5 py-4 flex items-center justify-between shadow-lg hover:border-indigo-500/40 transition-colors h-full">
+        <div>
+          <p class="text-[11px] font-semibold uppercase tracking-widest text-slate-400">Status Akun</p>
+          {% if user_profile.is_verified %}
+            <p class="text-2xl font-extrabold text-white mt-1 leading-none">Terverifikasi</p>
+            <p class="text-xs text-emerald-400 mt-1.5">Akun aktif penuh</p>
+          {% elif user_profile.submission_status == 'pending' %}
+            <p class="text-2xl font-extrabold text-white mt-1 leading-none">Menunggu</p>
+            <p class="text-xs text-yellow-400 mt-1.5">Menunggu verifikasi RT</p>
+          {% else %}
+            <p class="text-2xl font-extrabold text-white mt-1 leading-none">Belum Lengkap</p>
+            <p class="text-xs text-slate-400 mt-1.5">Lengkapi profil kamu</p>
+          {% endif %}
+        </div>
+        <div class="{% if user_profile.is_verified %}bg-emerald-500/10 text-emerald-400{% elif user_profile.submission_status == 'pending' %}bg-yellow-500/10 text-yellow-400{% else %}bg-slate-500/10 text-slate-400{% endif %} rounded-xl p-3 flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+        </div>
       </div>
-    </div>
+    </a>
 
   </div>
 
-  <!-- ================================================
-       PENGUMUMAN & JADWAL RONDA
-  ================================================ -->
-<!-- 1. DETAIL KECIL DI ATAS (YANG SEMPAT HILANG) -->
-<div class="text-[11px] font-bold text-slate-550 uppercase tracking-widest mb-3 px-1">
-  PENGUMUMAN & JADWAL RONDA
-</div>
+  {# ── PENGUMUMAN & JADWAL RONDA ── #}
+  <div class="text-[11px] font-bold text-slate-500 uppercase tracking-widest px-1">Pengumuman &amp; Jadwal Ronda</div>
 
-<!-- ================================================
-     GRID: PENGUMUMAN & JADWAL RONDA (BERDAMPINGAN)
-================================================ -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full items-stretch">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
 
-  {# ── KIRI: CARD PENGUMUMAN (MODEL CYBER BARU) ── #}
-  <div class="bg-[#0d1b2e]/90 backdrop-blur border border-[#1e3a5f] rounded-2xl overflow-hidden shadow-2xl flex flex-col h-full">
-    
-    {# Ilustrasi atas #}
-    <div class="bg-[#0b1524]/60 flex items-center justify-center px-6 pt-8 pb-4 border-b border-[#1e3a5f]/40 relative overflow-hidden">
-      <!-- Efek glow neon -->
-      <div class="absolute w-24 h-24 bg-cyan-500/10 rounded-full blur-xl"></div>
-      
-      <!-- Icon Radar / Security System -->
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 text-cyan-400 relative z-10 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-      </svg>
+    {# Kiri: Pengumuman #}
+    <div class="bg-[#0d1b2e]/90 backdrop-blur border border-[#1e3a5f] rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+      <div class="bg-[#0b1524]/60 flex items-center justify-center px-6 pt-8 pb-4 border-b border-[#1e3a5f]/40 relative overflow-hidden">
+        <div class="absolute w-24 h-24 bg-cyan-500/10 rounded-full blur-xl"></div>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 text-cyan-400 relative z-10 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+        </svg>
+      </div>
+      <div class="px-5 py-5 flex flex-col flex-1 justify-between">
+        <div>
+          <p class="text-[14px] font-extrabold text-white leading-snug flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse flex-shrink-0"></span>
+            Imbauan Peningkatan Kewaspadaan Lingkungan
+          </p>
+          <p class="text-[12px] text-slate-400 mt-2 leading-relaxed">
+            Dimohon kepada seluruh warga untuk selalu berjaga-jaga, memastikan pintu atau pagar terkunci rapat di malam hari, dan tetap siaga demi keamanan bersama.
+          </p>
+        </div>
+        <div class="flex items-center justify-between mt-5 pt-3 border-t border-[#1e3a5f]/40">
+          <div class="flex items-center gap-1.5 text-[11px] text-slate-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            {{ today|date:"l, j F Y" }}
+          </div>
+          <button onclick="openModal('modal-pengumuman')"
+            class="flex items-center gap-1 text-[11px] font-bold text-cyan-400 hover:text-cyan-300 transition active:scale-95">
+            Lihat Semua
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
 
-    {# Konten teks tema keamanan #}
-    <div class="px-5 py-5 flex flex-col flex-1 justify-between">
+    {# Kanan: Jadwal Ronda Dinamis #}
+    <div class="bg-[#0d1b2e]/90 backdrop-blur border border-[#1e3a5f] rounded-2xl p-5 shadow-2xl flex flex-col justify-between">
       <div>
-        <!-- Judul Peringatan -->
-        <p class="text-[14px] font-extrabold text-white leading-snug flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-          Imbauan Peningkatan Kewaspadaan Lingkungan
-        </p>
-        
-        <!-- Deskripsi baru -->
-        <p class="text-[12px] text-slate-400 mt-2 leading-relaxed">
-          Dimohon kepada seluruh warga RT 04 untuk selalu berjaga-jaga, memastikan pintu atau pagar terkunci rapat di malam hari, dan tetap siaga demi keamanan bersama.
-        </p>
-      </div>
-
-      {# Bagian Footer Card (Tanggal & Tombol) #}
-      <div class="flex items-center justify-between mt-5 pt-3 border-t border-[#1e3a5f]/40">
-        <!-- Tanggal -->
-        <div class="flex items-center gap-1.5 text-[11px] text-slate-400">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="flex items-center gap-2 mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-indigo-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
           </svg>
-          Minggu, 9 Juni 2026
+          <h3 class="text-xs font-bold uppercase tracking-wider text-white">Jadwal Ronda Hari Ini</h3>
+          <span class="ml-auto text-[10px] text-slate-500 flex-shrink-0">{{ today|date:"d/m/Y" }}</span>
         </div>
-        
-        <!-- Tombol "Lihat Semua" warna Cyan -->
-        <button
-          onclick="openModal('modal-pengumuman')"
-          class="flex items-center gap-1 text-[11px] font-bold text-cyan-400 hover:text-cyan-300 transition active:scale-95"
-        >
-          Lihat Semua Pengumuman
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-          </svg>
-        </button>
+
+        {% if petugas_ronda %}
+          {# Tampilkan max 3, sisanya di modal #}
+          <div class="space-y-2.5">
+            {% for p in petugas_ronda|slice:":3" %}
+            <div class="bg-[#0b1524]/60 border border-[#1e3a5f]/40 rounded-xl p-3 flex items-center justify-between gap-2">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-8 h-8 rounded-full bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                  {{ p.inisial }}
+                </div>
+                <div class="min-w-0">
+                  <p class="text-xs font-bold text-white truncate">{{ p.nama }}</p>
+                  <p class="text-[10px] text-slate-400 mt-0.5">{{ p.jam_mulai }} — {{ p.jam_selesai }}</p>
+                </div>
+              </div>
+              <div class="flex-shrink-0">
+                {% if p.status_absen == 'hadir' %}
+                  <span class="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">Hadir</span>
+                {% elif p.status_absen == 'terlambat' %}
+                  <span class="text-[10px] font-semibold text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-2 py-0.5 rounded-md">Terlambat</span>
+                {% elif p.status_absen == 'tidak_hadir' %}
+                  <span class="text-[10px] font-semibold text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-md">Tidak Hadir</span>
+                {% else %}
+                  <span class="text-[10px] font-semibold text-slate-400 bg-slate-500/10 border border-slate-500/20 px-2 py-0.5 rounded-md">Belum Absen</span>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          {# Tombol Lihat Semua — hanya muncul kalau lebih dari 3 #}
+          {% if petugas_ronda|length > 3 %}
+          <button onclick="openModal('modal-jadwal-ronda')"
+                  class="w-full mt-3 flex items-center justify-center gap-1.5 text-[11px] font-bold text-indigo-400 hover:text-indigo-300 bg-indigo-500/5 hover:bg-indigo-500/10 border border-indigo-500/20 hover:border-indigo-500/40 rounded-xl py-2.5 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            Lihat Semua {{ petugas_ronda|length }} Petugas
+          </button>
+          {% endif %}
+
+        {% else %}
+          <div class="flex flex-col items-center justify-center py-10 text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-slate-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <p class="text-sm text-slate-500">Belum ada jadwal ronda hari ini</p>
+          </div>
+        {% endif %}
       </div>
+
+      <p class="text-[10px] text-slate-500 italic mt-4 border-t border-[#1e3a5f]/40 pt-3">
+        * Setiap shift malam diisi oleh minimal 2 orang petugas aktif.
+      </p>
     </div>
+
   </div>
 
-  {# ── KANAN: CARD JADWAL RONDA ASLI (KODE LAMA KAMU BIAR PETUGASNYA MUNCUL LAGI) ── #}
-  <div class="bg-[#0d1b2e]/90 backdrop-blur border border-[#1e3a5f] rounded-2xl p-5 shadow-2xl flex flex-col justify-between h-full">
-    <div>
-      <div class="flex items-center gap-2 mb-4 text-white">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+  {# ── LAPORAN TERBARU SAYA ── #}
+  {% if laporan_terbaru %}
+  <div>
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
         </svg>
-        <h3 class="text-xs font-bold uppercase tracking-wider">Jadwal Ronda Malam Ini</h3>
+        <span class="text-sm font-bold text-white">Laporan Terbaru Saya</span>
       </div>
+      <a href="{% url 'emergency:riwayat' %}" class="text-xs text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1 no-underline transition">
+        Lihat Semua
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </a>
+    </div>
 
-      <!-- Daftar Petugas Jaga -->
-      <div class="space-y-3">
-        <!-- Petugas 1 -->
-        <div class="bg-[#0b1524]/60 border border-[#1e3a5f]/40 rounded-xl p-3 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center font-bold text-xs">
-              1
-            </div>
-            <div>
-              <p class="text-xs font-bold text-white">Budi Santoso</p>
-              <p class="text-[10px] text-slate-400 mt-0.5">Petugas Ronda Utama</p>
-            </div>
+    <div class="bg-[#0d1b2e]/90 border border-[#1e3a5f] rounded-2xl p-4 shadow-lg">
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex items-start gap-3 min-w-0">
+          {# Icon kategori #}
+          <div class="flex-shrink-0 mt-0.5">
+            {% if laporan_terbaru.kategori == 'pencurian' %}
+              <div class="w-9 h-9 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+              </div>
+            {% elif laporan_terbaru.kategori == 'kebakaran' %}
+              <div class="w-9 h-9 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
+              </div>
+            {% elif laporan_terbaru.kategori == 'medis' %}
+              <div class="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+              </div>
+            {% else %}
+              <div class="w-9 h-9 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </div>
+            {% endif %}
           </div>
-          <span class="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">Hadir</span>
+          <div class="min-w-0">
+            <p class="text-sm font-bold text-white">{{ laporan_terbaru.get_kategori_display }}</p>
+            {% if laporan_terbaru.deskripsi %}
+              <p class="text-[12px] text-slate-400 mt-0.5 line-clamp-2">{{ laporan_terbaru.deskripsi }}</p>
+            {% endif %}
+            <p class="text-[11px] text-slate-500 mt-1.5">{{ laporan_terbaru.dibuat|date:"d M Y · H:i" }} WIB</p>
+            {% if laporan_terbaru.ditangani_oleh %}
+              <p class="text-[11px] text-cyan-400 mt-0.5">Ditangani: {{ laporan_terbaru.ditangani_oleh }}</p>
+            {% endif %}
+          </div>
         </div>
-
-        <!-- Petugas 2 -->
-        <div class="bg-[#0b1524]/60 border border-[#1e3a5f]/40 rounded-xl p-3 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center font-bold text-xs">
-              2
-            </div>
-            <div>
-              <p class="text-xs font-bold text-white">Ahmad Subarjo</p>
-              <p class="text-[10px] text-slate-400 mt-0.5">Petugas Ronda Sesi Malam</p>
-            </div>
-          </div>
-          <span class="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">Hadir</span>
+        <div class="flex-shrink-0">
+          {% if laporan_terbaru.status == 'pending' %}
+            <span class="text-[11px] font-bold text-yellow-400 bg-yellow-500/10 border border-yellow-500/30 px-2.5 py-1 rounded-lg">Menunggu</span>
+          {% elif laporan_terbaru.status == 'diproses' %}
+            <span class="text-[11px] font-bold text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 px-2.5 py-1 rounded-lg">Diproses</span>
+          {% else %}
+            <span class="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-lg">Selesai</span>
+          {% endif %}
         </div>
       </div>
     </div>
-
-    <p class="text-[10px] text-slate-500 italic mt-4">* Setiap shift malam diisi oleh minimal 2 orang petugas aktif.</p>
   </div>
+  {% endif %}
 
-</div>
-
-  <!-- ================================================
-       LIVE MONITORING CCTV
-  ================================================ -->
+  {# ── LIVE MONITORING CCTV ── #}
   <div>
     <div class="flex items-center justify-between mb-3">
       <div class="flex items-center gap-2">
         <span class="w-2.5 h-2.5 rounded-full bg-green-400 shadow-[0_0_6px_#4ade80]"></span>
         <span class="text-sm font-bold text-white">Live Monitoring CCTV</span>
       </div>
-      <a href="{% url 'account:cctv_warga' %}" 
+      <a href="{% url 'account:cctv_warga' %}"
         class="text-xs font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition no-underline">
-          Lihat Semua
+        Lihat Semua
         <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-    </svg>
-  </a>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </a>
     </div>
 
-    {# Mobile: 2 kolom #}
+    {# Mobile: 2 kolom, tampil 2 kamera #}
     <div class="grid grid-cols-2 gap-3 md:hidden">
+      {% for cam in "12"|make_list %}
       <div class="relative rounded-2xl overflow-hidden bg-black border border-[#1e3a5f]" style="aspect-ratio:16/9">
-        <div class="absolute inset-0 flex items-center justify-center"><span class="w-2 h-2 rounded-full bg-slate-700"></span></div>
+        <div class="absolute inset-0 bg-[#050d18]"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+          </svg>
+        </div>
         <div class="absolute top-0 left-0 right-0 flex items-center justify-between px-2 pt-1.5 z-10">
-          <span class="text-[8px] font-bold text-white uppercase bg-black/60 px-1.5 py-0.5 rounded-lg">Gerbang</span>
-          <span class="text-[8px] font-bold text-slate-400 bg-black/60 px-1.5 py-0.5 rounded-lg">CAM 01</span>
+          <span class="text-[8px] font-bold text-white uppercase bg-black/60 px-1.5 py-0.5 rounded">CAM 0{{ forloop.counter }}</span>
+          <span class="text-[7px] font-extrabold text-white bg-red-600 px-1.5 py-0.5 rounded animate-pulse">REC</span>
+        </div>
+        <div class="absolute bottom-0 left-0 right-0 flex items-center justify-between px-2 pb-1 z-10">
+          <span class="text-[7px] text-slate-400">LIVE</span>
+          <span class="text-[7px] text-slate-400 tabular-nums cam-ts"></span>
         </div>
       </div>
-      <div class="relative rounded-2xl overflow-hidden bg-black border border-[#1e3a5f]" style="aspect-ratio:16/9">
-        <div class="absolute inset-0 flex items-center justify-center"><span class="w-2 h-2 rounded-full bg-slate-700"></span></div>
-        <div class="absolute top-0 left-0 right-0 flex items-center justify-between px-2 pt-1.5 z-10">
-          <span class="text-[8px] font-bold text-white uppercase bg-black/60 px-1.5 py-0.5 rounded-lg">Pos Ronda</span>
-          <span class="text-[8px] font-bold text-slate-400 bg-black/60 px-1.5 py-0.5 rounded-lg">CAM 02</span>
-        </div>
-      </div>
-      <div class="relative rounded-2xl overflow-hidden bg-black border border-[#1e3a5f]" style="aspect-ratio:16/9">
-        <div class="absolute inset-0 flex items-center justify-center"><span class="w-2 h-2 rounded-full bg-slate-700"></span></div>
-        <div class="absolute top-0 left-0 right-0 flex items-center justify-between px-2 pt-1.5 z-10">
-          <span class="text-[8px] font-bold text-white uppercase bg-black/60 px-1.5 py-0.5 rounded-lg">Belakang</span>
-          <span class="text-[8px] font-bold text-slate-400 bg-black/60 px-1.5 py-0.5 rounded-lg">CAM 03</span>
-        </div>
-      </div>
-      <div class="relative rounded-2xl overflow-hidden bg-black border border-[#1e3a5f]" style="aspect-ratio:16/9">
-        <div class="absolute inset-0 flex items-center justify-center"><span class="w-2 h-2 rounded-full bg-slate-700"></span></div>
-        <div class="absolute top-0 left-0 right-0 flex items-center justify-between px-2 pt-1.5 z-10">
-          <span class="text-[8px] font-bold text-white uppercase bg-black/60 px-1.5 py-0.5 rounded-lg">Samping</span>
-          <span class="text-[8px] font-bold text-slate-400 bg-black/60 px-1.5 py-0.5 rounded-lg">CAM 04</span>
-        </div>
-      </div>
+      {% endfor %}
     </div>
 
-    {# Desktop: 3 kolom horizontal + label + timestamp seperti foto #}
+    {# Desktop: 3 kolom #}
     <div class="hidden md:grid grid-cols-3 gap-4">
-
+      {% with cam_labels="Gerbang Utama,Pos Ronda,Gang Belakang" %}
+      {% for cam in "123"|make_list %}
       <div class="relative rounded-xl overflow-hidden bg-black border border-[#1e3a5f]" style="aspect-ratio:16/9">
         <div class="absolute inset-0 bg-[#050d18]"></div>
-        {# Label atas kiri: nama kamera #}
+        <div class="absolute inset-0 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+          </svg>
+        </div>
         <div class="absolute top-0 left-0 right-0 flex items-center justify-between px-2 pt-2 z-10">
-          <div class="flex items-center gap-1 bg-black/70 px-2 py-0.5 rounded-md">
-            <span class="text-[7px] font-bold text-slate-400 uppercase tracking-wider">CCTV Gerbang Utama</span>
+          <div class="bg-black/70 px-2 py-0.5 rounded-md">
+            <span class="text-[7px] font-bold text-slate-400 uppercase tracking-wider">
+              CCTV {% if forloop.counter == 1 %}Gerbang Utama{% elif forloop.counter == 2 %}Pos Ronda{% else %}Gang Belakang{% endif %}
+            </span>
           </div>
           <div class="bg-black/70 px-2 py-0.5 rounded-md">
-            <span class="text-[7px] font-bold text-slate-400">CAM 01 - GERBANG UTAMA</span>
+            <span class="text-[7px] font-bold text-slate-400">CAM 0{{ forloop.counter }}</span>
           </div>
         </div>
-        {# Badge REC merah #}
-        <div class="absolute top-6 left-2 z-10 flex items-center gap-1 bg-red-600 px-1.5 py-0.5 rounded-sm">
-          <span class="text-[7px] font-extrabold text-white tracking-widest">REC</span>
-        </div>
-        {# Footer: LIVE AUDIO ON + timestamp #}
-        <div class="absolute bottom-0 left-0 right-0 flex items-center justify-between px-2 pb-1.5 z-10">
-          <span class="text-[7px] font-semibold text-slate-400 tracking-wider">LIVE AUDIO ON</span>
-          <span class="text-[7px] font-semibold text-slate-400 tabular-nums" id="ts-cam1"></span>
-        </div>
-      </div>
-
-      <div class="relative rounded-xl overflow-hidden bg-black border border-[#1e3a5f]" style="aspect-ratio:16/9">
-        <div class="absolute inset-0 bg-[#050d18]"></div>
-        <div class="absolute top-0 left-0 right-0 flex items-center justify-between px-2 pt-2 z-10">
-          <div class="flex items-center gap-1 bg-black/70 px-2 py-0.5 rounded-md">
-            <span class="text-[7px] font-bold text-slate-400 uppercase tracking-wider">CCTV Pos Ronda</span>
-          </div>
-          <div class="bg-black/70 px-2 py-0.5 rounded-md">
-            <span class="text-[7px] font-bold text-slate-400">CAM 02 - POS RONDA</span>
-          </div>
-        </div>
-        <div class="absolute top-6 left-2 z-10 flex items-center gap-1 bg-red-600 px-1.5 py-0.5 rounded-sm">
+        <div class="absolute top-6 left-2 z-10 bg-red-600 px-1.5 py-0.5 rounded-sm">
           <span class="text-[7px] font-extrabold text-white tracking-widest">REC</span>
         </div>
         <div class="absolute bottom-0 left-0 right-0 flex items-center justify-between px-2 pb-1.5 z-10">
           <span class="text-[7px] font-semibold text-slate-400 tracking-wider">LIVE AUDIO ON</span>
-          <span class="text-[7px] font-semibold text-slate-400 tabular-nums" id="ts-cam2"></span>
+          <span class="text-[7px] font-semibold text-slate-400 tabular-nums cam-ts"></span>
         </div>
       </div>
-
-      <div class="relative rounded-xl overflow-hidden bg-black border border-[#1e3a5f]" style="aspect-ratio:16/9">
-        <div class="absolute inset-0 bg-[#050d18]"></div>
-        <div class="absolute top-0 left-0 right-0 flex items-center justify-between px-2 pt-2 z-10">
-          <div class="flex items-center gap-1 bg-black/70 px-2 py-0.5 rounded-md">
-            <span class="text-[7px] font-bold text-slate-400 uppercase tracking-wider">CCTV Gang Belakang</span>
-          </div>
-          <div class="bg-black/70 px-2 py-0.5 rounded-md">
-            <span class="text-[7px] font-bold text-slate-400">CAM 03 - GANG BELAKANG</span>
-          </div>
-        </div>
-        <div class="absolute top-6 left-2 z-10 flex items-center gap-1 bg-red-600 px-1.5 py-0.5 rounded-sm">
-          <span class="text-[7px] font-extrabold text-white tracking-widest">REC</span>
-        </div>
-        <div class="absolute bottom-0 left-0 right-0 flex items-center justify-between px-2 pb-1.5 z-10">
-          <span class="text-[7px] font-semibold text-slate-400 tracking-wider">LIVE AUDIO ON</span>
-          <span class="text-[7px] font-semibold text-slate-400 tabular-nums" id="ts-cam3"></span>
-        </div>
-      </div>
-
+      {% endfor %}
+      {% endwith %}
     </div>
   </div>
 
-<!-- ================================================
-       KONTAK DARURAT (VERSI DARK MODE CYBER WA)
-  ================================================ -->
-  <div>
-    <!-- Judul & Icon Atas (Tetap Dipertahankan) -->
-    <div class="flex items-center gap-2 mb-3">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-      </svg>
-      <span class="text-sm font-bold text-white">Kontak Darurat</span>
-    </div>
-
-    <!-- Grid Layout Responsif -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-
-      {# Ambulans / Kesehatan #}
-      <a href="https://wa.me/6285389012740" target="_blank" class="bg-[#0d1b2e]/90 backdrop-blur border border-[#1e3a5f] rounded-2xl p-4 flex flex-col items-center text-center gap-2 hover:border-red-500/50 transition no-underline group shadow-xl">
-        <div class="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center group-hover:bg-red-500/20 transition">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-          </svg>
-        </div>
-        <div>
-          <p class="text-[12px] font-bold text-white leading-tight">Ambulans /<br>Kesehatan</p>
-          <div class="flex items-center justify-center gap-1.5 mt-2 bg-[#0b1524]/60 border border-[#1e3a5f]/60 rounded-lg px-2.5 py-1.5 group-hover:border-red-500/30 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-            </svg>
-            <span class="text-[10px] font-bold text-slate-300">0853-8901-2740</span>
-          </div>
-        </div>
-      </a>
-
-      {# Pemadam Kebakaran #}
-      <a href="https://wa.me/6285389012740" target="_blank" class="bg-[#0d1b2e]/90 backdrop-blur border border-[#1e3a5f] rounded-2xl p-4 flex flex-col items-center text-center gap-2 hover:border-orange-500/50 transition no-underline group shadow-xl">
-        <div class="w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center group-hover:bg-orange-500/20 transition">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
-          </svg>
-        </div>
-        <div>
-          <p class="text-[12px] font-bold text-white leading-tight">Pemadam<br>Kebakaran</p>
-          <div class="flex items-center justify-center gap-1.5 mt-2 bg-[#0b1524]/60 border border-[#1e3a5f]/60 rounded-lg px-2.5 py-1.5 group-hover:border-orange-500/30 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-            </svg>
-            <span class="text-[10px] font-bold text-slate-300">0853-8901-2740</span>
-          </div>
-        </div>
-      </a>
-
-      {# Petugas Keamanan Lingkungan #}
-      <a href="https://wa.me/6285389012740" target="_blank" class="bg-[#0d1b2e]/90 backdrop-blur border border-[#1e3a5f] rounded-2xl p-4 flex flex-col items-center text-center gap-2 hover:border-green-500/50 transition no-underline group shadow-xl">
-        <div class="w-12 h-12 rounded-2xl bg-green-500/10 border border-green-500/20 flex items-center justify-center group-hover:bg-green-500/20 transition">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-          </svg>
-        </div>
-        <div>
-          <p class="text-[12px] font-bold text-white leading-tight">Petugas Keamanan<br>Lingkungan</p>
-          <div class="flex items-center justify-center gap-1.5 mt-2 bg-[#0b1524]/60 border border-[#1e3a5f]/60 rounded-lg px-2.5 py-1.5 group-hover:border-green-500/30 transition">
-            <svg xmlns="http://www.w3.org/2000/xl" class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-            </svg>
-            <span class="text-[10px] font-bold text-slate-300">0853-8901-2740</span>
-          </div>
-        </div>
-      </a>
-
-      {# Ketua RT 04 #}
-      <a href="https://wa.me/6285389012740" target="_blank" class="bg-[#0d1b2e]/90 backdrop-blur border border-[#1e3a5f] rounded-2xl p-4 flex flex-col items-center text-center gap-2 hover:border-yellow-500/50 transition no-underline group shadow-xl">
-        <div class="w-12 h-12 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center group-hover:bg-yellow-500/20 transition">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-          </svg>
-        </div>
-        <div>
-          <p class="text-[12px] font-bold text-white leading-tight">Ketua RT 04</p>
-          <div class="flex items-center justify-center gap-1.5 mt-2 bg-[#0b1524]/60 border border-[#1e3a5f]/60 rounded-lg px-2.5 py-1.5 group-hover:border-yellow-500/30 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-            </svg>
-            <span class="text-[10px] font-bold text-slate-300">0853-8901-2740</span>
-          </div>
-        </div>
-      </a>
-
-    </div>
+  {# ── KONTAK DARURAT ── #}
+<div>
+  <div class="flex items-center gap-2 mb-3">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+    </svg>
+    <span class="text-sm font-bold text-white">Kontak Darurat</span>
   </div>
 
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
 
-<!-- ================================================
-     MODAL: NOTIFIKASI
-================================================ -->
-<div id="modal-notif" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true">
-  <!-- Ubah bagian ini: Naikkan kepekatan black dan hilangkan backdrop-blur jika masih bocor, atau isolasi jalurnya -->
-  <div class="absolute inset-0 bg-slate-950/80" onclick="/* blocked */"></div>
-  
-  <!-- Kotak Konten Modal: Tambahkan class 'z-10' untuk memastikan dia berdiri di lapisan atas secara independen -->
-  <div class="relative z-10 bg-[#0d1b2e] border border-[#1e3a5f] rounded-2xl w-full max-w-md p-6 shadow-2xl">
-    <div class="flex items-center justify-between border-b border-[#1e3a5f] pb-4 mb-5">
-      <div class="flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+    {# 1. Ambulans — WA #}
+    <a href="https://wa.me/119" target="_blank" rel="noopener"
+       class="bg-[#0d1b2e]/90 backdrop-blur border border-[#1e3a5f] rounded-2xl p-4 flex flex-col items-center text-center gap-2 hover:border-red-500/50 transition no-underline group shadow-xl">
+      <div class="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center group-hover:bg-red-500/20 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
         </svg>
-        <h3 class="text-sm font-bold text-white">Notifikasi Masuk</h3>
       </div>
-      <button onclick="closeModal('modal-notif')" class="w-7 h-7 bg-[#0f2035] border border-[#1e3a5f] rounded-lg flex items-center justify-center text-slate-400 hover:text-white transition">&times;</button>
-    </div>
-    <div class="flex flex-col items-center justify-center py-8 text-center">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-slate-600 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-      </svg>
-      <p class="text-sm text-slate-400">Belum ada notifikasi baru untuk lingkungan Anda.</p>
-    </div>
-    <button onclick="closeModal('modal-notif')"
-      class="w-full bg-[#0f2035] border border-[#1e3a5f] hover:border-slate-500 text-slate-300 hover:text-white text-xs font-semibold py-3 rounded-xl transition">
-      Tutup
-    </button>
-  </div>
-</div>
+      <div>
+        <p class="text-[12px] font-bold text-white leading-tight">Ambulans /<br>Kesehatan</p>
+        <div class="flex items-center justify-center gap-1.5 mt-2 bg-[#0b1524]/60 border border-[#1e3a5f]/60 rounded-lg px-2.5 py-1.5 group-hover:border-red-500/30 transition">
+          <svg class="w-3 h-3 text-green-400 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+          <span class="text-[10px] font-bold text-slate-300">WhatsApp</span>
+        </div>
+      </div>
+    </a>
 
-
-<!-- ================================================
-     MODAL: PETUGAS
-================================================ -->
-<div id="modal-petugas" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true">
-  
-  <div class="absolute inset-0 bg-slate-950/90" onclick="closeModal('modal-petugas')"></div>
-  
-  <div class="relative bg-[#0b1524] border-2 border-[#1e3e6b] rounded-2xl w-full max-w-md p-6 shadow-[0_0_40px_rgba(0,0,0,0.9)] z-10">
-    
-    <div class="flex items-center justify-between border-b border-[#1e3e6b] pb-4 mb-5">
-      <div class="flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197"/>
+    {# 2. Pemadam — WA #}
+    <a href="https://wa.me/113" target="_blank" rel="noopener"
+       class="bg-[#0d1b2e]/90 backdrop-blur border border-[#1e3a5f] rounded-2xl p-4 flex flex-col items-center text-center gap-2 hover:border-orange-500/50 transition no-underline group shadow-xl">
+      <div class="w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center group-hover:bg-orange-500/20 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
         </svg>
-        <h3 class="text-sm font-bold text-white tracking-wide">Daftar Nama Petugas Aktif</h3>
       </div>
-      <button onclick="closeModal('modal-petugas')" class="w-7 h-7 bg-[#112035] border border-[#1e3e6b] rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-red-500/20 hover:border-red-500/40 transition">&times;</button>
-    </div>
-    
-    <div class="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-      
-      <div class="flex items-center justify-between bg-[#11223b] border border-[#224575] hover:border-cyan-500/50 rounded-xl px-4 py-3.5 transition group">
-        <div class="flex items-center gap-3">
-          <span class="w-6 h-6 rounded-full bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.4)] flex items-center justify-center text-[10px] font-black text-white">1</span>
-          <span class="text-sm text-white font-semibold tracking-wide group-hover:text-cyan-300 transition">Budi Santoso</span>
+      <div>
+        <p class="text-[12px] font-bold text-white leading-tight">Pemadam<br>Kebakaran</p>
+        <div class="flex items-center justify-center gap-1.5 mt-2 bg-[#0b1524]/60 border border-[#1e3a5f]/60 rounded-lg px-2.5 py-1.5 group-hover:border-orange-500/30 transition">
+          <svg class="w-3 h-3 text-green-400 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+          <span class="text-[10px] font-bold text-slate-300">WhatsApp</span>
         </div>
-        <span class="text-[9px] font-extrabold uppercase tracking-wider text-green-400 bg-green-500/10 border border-green-500/40 px-2.5 py-0.5 rounded-md">Danru</span>
       </div>
-      
-      <div class="flex items-center justify-between bg-[#11223b] border border-[#224575] hover:border-cyan-500/50 rounded-xl px-4 py-3.5 transition group">
-        <div class="flex items-center gap-3">
-          <span class="w-6 h-6 rounded-full bg-cyan-600 flex items-center justify-center text-[10px] font-black text-white">2</span>
-          <span class="text-sm text-white font-semibold tracking-wide group-hover:text-cyan-300 transition">Ahmad Subarjo</span>
-        </div>
-        <span class="text-[9px] font-extrabold uppercase tracking-wider text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 px-2.5 py-0.5 rounded-md">Anggota</span>
-      </div>
-      
-      <div class="flex items-center justify-between bg-[#11223b] border border-[#224575] hover:border-cyan-500/50 rounded-xl px-4 py-3.5 transition group">
-        <div class="flex items-center gap-3">
-          <span class="w-6 h-6 rounded-full bg-cyan-600 flex items-center justify-center text-[10px] font-black text-white">3</span>
-          <span class="text-sm text-white font-semibold tracking-wide group-hover:text-cyan-300 transition">Hendi Wijaya</span>
-        </div>
-        <span class="text-[9px] font-extrabold uppercase tracking-wider text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 px-2.5 py-0.5 rounded-md">Anggota</span>
-      </div>
-      
-      <div class="flex items-center justify-between bg-[#11223b] border border-[#224575] hover:border-cyan-500/50 rounded-xl px-4 py-3.5 transition group">
-        <div class="flex items-center gap-3">
-          <span class="w-6 h-6 rounded-full bg-cyan-600 flex items-center justify-center text-[10px] font-black text-white">4</span>
-          <span class="text-sm text-white font-semibold tracking-wide group-hover:text-cyan-300 transition">Rian Hidayat</span>
-        </div>
-        <span class="text-[9px] font-extrabold uppercase tracking-wider text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 px-2.5 py-0.5 rounded-md">Anggota</span>
-      </div>
-      
-    </div>
-    
-    <button onclick="closeModal('modal-petugas')" class="w-full mt-5 bg-[#162a4a] border border-[#224575] hover:border-cyan-500 text-white hover:text-white text-xs font-bold py-3.5 rounded-xl shadow-lg transition">
-      Tutup Halaman
-    </button>
-  </div>
-</div>
+    </a>
 
-
-<!-- ================================================
-     MODAL: PENGUMUMAN
-================================================ -->
-<div id="modal-pengumuman" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true">
-  <div class="absolute inset-0 bg-slate-950/90" onclick="closeModal('modal-pengumuman')"></div>
-  <div class="relative z-10 bg-[#0d1b2e] border border-[#1e3a5f] rounded-2xl w-full max-w-md p-6 shadow-2xl">
-    <div class="flex items-center justify-between border-b border-[#1e3a5f] pb-4 mb-5">
-      <div class="flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+    {# 3. Petugas Keamanan — WA RT #}
+    <a href="https://wa.me/{{ NOMOR_WA_RT }}" target="_blank" rel="noopener"
+       class="bg-[#0d1b2e]/90 backdrop-blur border border-[#1e3a5f] rounded-2xl p-4 flex flex-col items-center text-center gap-2 hover:border-green-500/50 transition no-underline group shadow-xl">
+      <div class="w-12 h-12 rounded-2xl bg-green-500/10 border border-green-500/20 flex items-center justify-center group-hover:bg-green-500/20 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
         </svg>
-        <h3 class="text-sm font-bold text-white">Semua Pengumuman RT</h3>
       </div>
-      <button onclick="closeModal('modal-pengumuman')" class="w-7 h-7 bg-[#0f2035] border border-[#1e3a5f] rounded-lg flex items-center justify-center text-slate-400 hover:text-white transition">&times;</button>
-    </div>
-    <div class="flex flex-col items-center justify-center py-8 text-center">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-slate-600 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-          d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
-      </svg>
-      <p class="text-sm text-slate-400">Belum ada pengumuman lain saat ini.</p>
-    </div>
-    <button onclick="closeModal('modal-pengumuman')"
-      class="w-full bg-[#0f2035] border border-[#1e3a5f] hover:border-slate-500 text-slate-300 hover:text-white text-xs font-semibold py-3 rounded-xl transition">
-      Selesai Membaca
-    </button>
+      <div>
+        <p class="text-[12px] font-bold text-white leading-tight">Petugas<br>Keamanan</p>
+        <div class="flex items-center justify-center gap-1.5 mt-2 bg-[#0b1524]/60 border border-[#1e3a5f]/60 rounded-lg px-2.5 py-1.5 group-hover:border-green-500/30 transition">
+          <svg class="w-3 h-3 text-green-400 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+          <span class="text-[10px] font-bold text-slate-300">WhatsApp</span>
+        </div>
+      </div>
+    </a>
+
+    {# 4. Ketua RT — WA #}
+    <a href="https://wa.me/{{ NOMOR_WA_RT }}" target="_blank" rel="noopener"
+       class="bg-[#0d1b2e]/90 backdrop-blur border border-[#1e3a5f] rounded-2xl p-4 flex flex-col items-center text-center gap-2 hover:border-yellow-500/50 transition no-underline group shadow-xl">
+      <div class="w-12 h-12 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center group-hover:bg-yellow-500/20 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+        </svg>
+      </div>
+      <div>
+        <p class="text-[12px] font-bold text-white leading-tight">Ketua RT{% if user_profile.rt %} {{ user_profile.rt }}{% endif %}</p>
+        <div class="flex items-center justify-center gap-1.5 mt-2 bg-[#0b1524]/60 border border-[#1e3a5f]/60 rounded-lg px-2.5 py-1.5 group-hover:border-yellow-500/30 transition">
+          <svg class="w-3 h-3 text-green-400 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+          <span class="text-[10px] font-bold text-slate-300">WhatsApp</span>
+        </div>
+      </div>
+    </a>
+
   </div>
 </div>
 
+  {# ── MODAL: JADWAL RONDA LENGKAP ── #}
+  <div id="modal-jadwal-ronda" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true">
+    <div class="absolute inset-0 bg-slate-950/85" onclick="closeModal('modal-jadwal-ronda')"></div>
+    <div class="relative z-10 bg-[#0d1b2e] border border-[#1e3a5f] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
 
-<!-- ================================================
-     MODAL: SEMUA CCTV
-================================================ -->
-<div id="modal-cctv-all" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true">
-  <div class="absolute inset-0 bg-slate-950/90" onclick="closeModal('modal-cctv-all')"></div>
-  <div class="relative z-10 bg-[#0d1b2e] border border-[#1e3a5f] rounded-2xl w-full max-w-2xl p-6 shadow-2xl">
-    <div class="flex items-center justify-between border-b border-[#1e3a5f] pb-4 mb-5">
-      <div class="flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_6px_#4ade80]"></span>
-        <h3 class="text-sm font-bold text-white">Semua Kamera CCTV</h3>
+      {# Header #}
+      <div class="flex items-center justify-between px-5 py-4 border-b border-[#1e3a5f]">
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          <h3 class="text-sm font-bold text-white">Jadwal Ronda Hari Ini</h3>
+          <span class="text-[10px] text-slate-500 ml-1">{{ today|date:"d/m/Y" }}</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">
+            {{ petugas_ronda|length }} Petugas
+          </span>
+          <button onclick="closeModal('modal-jadwal-ronda')"
+                  class="w-7 h-7 bg-[#0f2035] border border-[#1e3a5f] rounded-lg flex items-center justify-center text-slate-400 hover:text-white transition text-lg leading-none">
+            &times;
+          </button>
+        </div>
       </div>
-      <button onclick="closeModal('modal-cctv-all')" class="w-7 h-7 bg-[#0f2035] border border-[#1e3a5f] rounded-lg flex items-center justify-center text-slate-400 hover:text-white transition">&times;</button>
+
+      {# List semua petugas #}
+      <div class="overflow-y-auto max-h-[60vh] px-5 py-4 space-y-2.5">
+        {% for p in petugas_ronda %}
+        <div class="bg-[#0b1524]/60 border border-[#1e3a5f]/40 rounded-xl p-3.5 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-9 h-9 rounded-full bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center font-bold text-xs flex-shrink-0">
+              {{ p.inisial }}
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm font-bold text-white truncate">{{ p.nama }}</p>
+              <p class="text-[11px] text-slate-400 mt-0.5">{{ p.jam_mulai }} — {{ p.jam_selesai }} WIB</p>
+            </div>
+          </div>
+          <div class="flex-shrink-0">
+            {% if p.status_absen == 'hadir' %}
+              <span class="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg">Hadir</span>
+            {% elif p.status_absen == 'terlambat' %}
+              <span class="text-[10px] font-semibold text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-2.5 py-1 rounded-lg">Terlambat</span>
+            {% elif p.status_absen == 'tidak_hadir' %}
+              <span class="text-[10px] font-semibold text-red-400 bg-red-500/10 border border-red-500/20 px-2.5 py-1 rounded-lg">Tidak Hadir</span>
+            {% else %}
+              <span class="text-[10px] font-semibold text-slate-400 bg-slate-500/10 border border-slate-500/20 px-2.5 py-1 rounded-lg">Belum Absen</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      {# Footer #}
+      <div class="px-5 py-4 border-t border-[#1e3a5f]">
+        <p class="text-[10px] text-slate-500 italic mb-3">* Setiap shift malam diisi oleh minimal 2 orang petugas aktif.</p>
+        <button onclick="closeModal('modal-jadwal-ronda')"
+                class="w-full bg-[#0f2035] border border-[#1e3a5f] hover:border-indigo-500/40 text-slate-300 hover:text-white text-xs font-semibold py-3 rounded-xl transition">
+          Tutup
+        </button>
+      </div>
+
     </div>
-    <div class="grid grid-cols-2 gap-3">
-      {% for cam in cams_list|default:"1,2,3,4" %}{% endfor %}
-      <div class="relative rounded-xl overflow-hidden bg-black border border-[#1e3a5f]" style="aspect-ratio:16/9">
-        <div class="absolute inset-0 bg-[#050d18]"></div>
-        <div class="absolute top-1 left-1 bg-red-600 px-1.5 py-0.5 rounded-sm z-10"><span class="text-[7px] font-extrabold text-white">REC</span></div>
-        <div class="absolute bottom-1 left-2 right-2 flex justify-between z-10">
-          <span class="text-[7px] text-slate-400">LIVE AUDIO ON</span>
-          <span class="text-[7px] text-slate-400 tabular-nums" id="ts-m-cam1"></span>
-        </div>
-        <div class="absolute top-1 right-1 bg-black/70 px-1.5 py-0.5 rounded-md z-10"><span class="text-[7px] text-slate-400">CAM 01 - GERBANG UTAMA</span></div>
-      </div>
-      <div class="relative rounded-xl overflow-hidden bg-black border border-[#1e3a5f]" style="aspect-ratio:16/9">
-        <div class="absolute inset-0 bg-[#050d18]"></div>
-        <div class="absolute top-1 left-1 bg-red-600 px-1.5 py-0.5 rounded-sm z-10"><span class="text-[7px] font-extrabold text-white">REC</span></div>
-        <div class="absolute bottom-1 left-2 right-2 flex justify-between z-10">
-          <span class="text-[7px] text-slate-400">LIVE AUDIO ON</span>
-          <span class="text-[7px] text-slate-400 tabular-nums" id="ts-m-cam2"></span>
-        </div>
-        <div class="absolute top-1 right-1 bg-black/70 px-1.5 py-0.5 rounded-md z-10"><span class="text-[7px] text-slate-400">CAM 02 - POS RONDA</span></div>
-      </div>
-      <div class="relative rounded-xl overflow-hidden bg-black border border-[#1e3a5f]" style="aspect-ratio:16/9">
-        <div class="absolute inset-0 bg-[#050d18]"></div>
-        <div class="absolute top-1 left-1 bg-red-600 px-1.5 py-0.5 rounded-sm z-10"><span class="text-[7px] font-extrabold text-white">REC</span></div>
-        <div class="absolute bottom-1 left-2 right-2 flex justify-between z-10">
-          <span class="text-[7px] text-slate-400">LIVE AUDIO ON</span>
-          <span class="text-[7px] text-slate-400 tabular-nums" id="ts-m-cam3"></span>
-        </div>
-        <div class="absolute top-1 right-1 bg-black/70 px-1.5 py-0.5 rounded-md z-10"><span class="text-[7px] text-slate-400">CAM 03 - GANG BELAKANG</span></div>
-      </div>
-      <div class="relative rounded-xl overflow-hidden bg-black border border-[#1e3a5f]" style="aspect-ratio:16/9">
-        <div class="absolute inset-0 bg-[#050d18]"></div>
-        <div class="absolute top-1 left-1 bg-red-600 px-1.5 py-0.5 rounded-sm z-10"><span class="text-[7px] font-extrabold text-white">REC</span></div>
-        <div class="absolute bottom-1 left-2 right-2 flex justify-between z-10">
-          <span class="text-[7px] text-slate-400">LIVE AUDIO ON</span>
-          <span class="text-[7px] text-slate-400 tabular-nums" id="ts-m-cam4"></span>
-        </div>
-        <div class="absolute top-1 right-1 bg-black/70 px-1.5 py-0.5 rounded-md z-10"><span class="text-[7px] text-slate-400">CAM 04 - SAMPING</span></div>
-      </div>
-    </div>
-    <button onclick="closeModal('modal-cctv-all')"
-      class="w-full mt-5 bg-[#0f2035] border border-[#1e3a5f] hover:border-slate-500 text-slate-300 hover:text-white text-xs font-semibold py-3 rounded-xl transition">
-      Tutup
-    </button>
   </div>
+
+  {# ── MODAL: NOTIFIKASI ── #}
+  <div id="modal-notif" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true">
+    <div class="absolute inset-0 bg-slate-950/80"></div>
+    <div class="relative z-10 bg-[#0d1b2e] border border-[#1e3a5f] rounded-2xl w-full max-w-md p-6 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-[#1e3a5f] pb-4 mb-5">
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+          </svg>
+          <h3 class="text-sm font-bold text-white">Notifikasi Masuk</h3>
+        </div>
+        <button onclick="closeModal('modal-notif')" class="w-7 h-7 bg-[#0f2035] border border-[#1e3a5f] rounded-lg flex items-center justify-center text-slate-400 hover:text-white transition">&times;</button>
+      </div>
+      <div class="flex flex-col items-center justify-center py-8 text-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-slate-600 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+        </svg>
+        <p class="text-sm text-slate-400">Belum ada notifikasi baru untuk lingkungan Anda.</p>
+      </div>
+      <button onclick="closeModal('modal-notif')"
+        class="w-full bg-[#0f2035] border border-[#1e3a5f] hover:border-slate-500 text-slate-300 hover:text-white text-xs font-semibold py-3 rounded-xl transition">Tutup</button>
+    </div>
+  </div>
+
+  {# ── MODAL: PENGUMUMAN ── #}
+  <div id="modal-pengumuman" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true">
+    <div class="absolute inset-0 bg-slate-950/90" onclick="closeModal('modal-pengumuman')"></div>
+    <div class="relative z-10 bg-[#0d1b2e] border border-[#1e3a5f] rounded-2xl w-full max-w-md p-6 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-[#1e3a5f] pb-4 mb-5">
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+          </svg>
+          <h3 class="text-sm font-bold text-white">Semua Pengumuman RT</h3>
+        </div>
+        <button onclick="closeModal('modal-pengumuman')" class="w-7 h-7 bg-[#0f2035] border border-[#1e3a5f] rounded-lg flex items-center justify-center text-slate-400 hover:text-white transition">&times;</button>
+      </div>
+      <div class="flex flex-col items-center justify-center py-8 text-center">
+        <p class="text-sm text-slate-400">Belum ada pengumuman lain saat ini.</p>
+      </div>
+      <button onclick="closeModal('modal-pengumuman')"
+        class="w-full bg-[#0f2035] border border-[#1e3a5f] hover:border-slate-500 text-slate-300 hover:text-white text-xs font-semibold py-3 rounded-xl transition">Selesai Membaca</button>
+    </div>
+  </div>
+
 </div>
 
-
-<!-- ================================================
-     SCRIPT
-================================================ -->
 <script>
-  /* ── Modal helpers: hanya bisa tutup via tombol Tutup / X ── */
-  function openModal(id) {
-    document.getElementById(id).classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeModal(id) {
-    document.getElementById(id).classList.add('hidden');
-    document.body.style.overflow = '';
-  }
-  /* ESC key tutup modal yg sedang terbuka */
+  function openModal(id)  { document.getElementById(id).classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
+  function closeModal(id) { document.getElementById(id).classList.add('hidden');    document.body.style.overflow = ''; }
   document.addEventListener('keydown', function(e) {
     if (e.key !== 'Escape') return;
-    ['modal-notif','modal-petugas','modal-pengumuman','modal-cctv-all'].forEach(function(id) {
+    ['modal-notif', 'modal-pengumuman', 'modal-jadwal-ronda'].forEach(function(id) {
       var el = document.getElementById(id);
       if (el && !el.classList.contains('hidden')) closeModal(id);
     });
   });
 
-  /* ── Live timestamp CCTV ── */
-  function liveTimestamp() {
+  /* Live timestamp CCTV */
+  function liveCamTS() {
     var now = new Date();
-    var str = now.getFullYear() + '-'
+    var s = now.getFullYear() + '-'
       + String(now.getMonth()+1).padStart(2,'0') + '-'
       + String(now.getDate()).padStart(2,'0') + ' '
       + String(now.getHours()).padStart(2,'0') + ':'
       + String(now.getMinutes()).padStart(2,'0') + ':'
       + String(now.getSeconds()).padStart(2,'0');
-    ['ts-cam1','ts-cam2','ts-cam3','ts-m-cam1','ts-m-cam2','ts-m-cam3','ts-m-cam4'].forEach(function(id) {
-      var el = document.getElementById(id);
-      if (el) el.textContent = str;
-    });
+    document.querySelectorAll('.cam-ts').forEach(function(el){ el.textContent = s; });
   }
-  liveTimestamp();
-  setInterval(liveTimestamp, 1000);
+  liveCamTS();
+  setInterval(liveCamTS, 1000);
 </script>
-
 {% endblock content %}
